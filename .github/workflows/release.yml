@@ -1,0 +1,45 @@
+name: Create release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest code
+        uses: actions/checkout@v4
+
+      - name: Bundle files
+        run: |
+          mkdir -p ./temp/pulsar-vehicles
+          cp ./{README.md,fxmanifest.lua} ./temp/pulsar-vehicles
+          cp -r ./{client,server,shared} ./temp/pulsar-vehicles
+          cd ./temp && zip -r ../pulsar-vehicles.zip ./pulsar-vehicles
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "PULSAR-VEHICLES ${{ github.ref_name }}"
+          body: |
+            ![Pulsar Framework](https://r2.fivemanage.com/GPYOH8Hq4GPyAY7czrgLe/pulsarbanner.png)
+
+            ## PULSAR-VEHICLES ${{ github.ref_name }}
+
+            Vehicle management with storage, impound, sirens, and pursuit modes for Pulsar Framework.
+
+            ### Installation
+            1. Download `pulsar-vehicles.zip` below
+            2. Extract into your server's `resources` folder
+            3. Add `ensure pulsar-vehicles` to your `server.cfg`
+
+            ---
+            ![Pulsar Framework](https://img.shields.io/badge/Pulsar-Framework-7c3aed?style=flat-square)
+            ![Built for FiveM](https://img.shields.io/badge/Built_for-FiveM-F40552?style=flat-square)
+          files: pulsar-vehicles.zip
+          prerelease: false
