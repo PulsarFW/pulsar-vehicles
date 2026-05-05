@@ -17,10 +17,9 @@ jobs:
 
       - name: Bundle files
         run: |
-          mkdir -p ./temp/pulsar-vehicles
-          cp ./{README.md,fxmanifest.lua} ./temp/pulsar-vehicles
-          cp -r ./{client,server,shared} ./temp/pulsar-vehicles
-          cd ./temp && zip -r ../pulsar-vehicles.zip ./pulsar-vehicles
+          mkdir -p staging/pulsar-vehicles
+          rsync -a --exclude='.github' --exclude='node_modules' --exclude='staging' . staging/pulsar-vehicles/
+          cd staging && zip -r ../pulsar-vehicles.zip pulsar-vehicles/
 
       - name: Create release
         uses: softprops/action-gh-release@v2
