@@ -3,15 +3,7 @@ function RegisterItemUses()
 		Citizen.SetTimeout(500, function()
 			exports["pulsar-core"]:ClientCallback(source, "Vehicles:Lockpick", true, function(using, success)
 				if using then
-					local newValue = slot.CreateDate - (60 * 60 * 24)
-					if success then
-						newValue = slot.CreateDate - (60 * 60 * 12)
-					end
-					if (os.time() - itemData.durability >= newValue) then
-						exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
-					else
-						exports.ox_inventory:SetItemCreateDate(slot.id, newValue)
-					end
+					exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
 				end
 			end)
 		end)
@@ -21,15 +13,7 @@ function RegisterItemUses()
 		Citizen.SetTimeout(500, function()
 			exports["pulsar-core"]:ClientCallback(source, "Vehicles:AdvLockpick", true, function(using, success)
 				if using then
-					local newValue = slot.CreateDate - (60 * 60 * 24)
-					if success then
-						newValue = slot.CreateDate - (60 * 60 * 12)
-					end
-					if (os.time() - itemData.durability >= newValue) then
-						exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
-					else
-						exports.ox_inventory:SetItemCreateDate(slot.id, newValue)
-					end
+					exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
 				end
 			end)
 		end)
@@ -39,15 +23,7 @@ function RegisterItemUses()
 		Citizen.SetTimeout(500, function()
 			exports["pulsar-core"]:ClientCallback(source, "Vehicles:PDLockpick", true, function(using, success)
 				if using then
-					local newValue = slot.CreateDate - (60 * 60 * 24)
-					if success then
-						newValue = slot.CreateDate - (60 * 60 * 12)
-					end
-					if (os.time() - itemData.durability >= newValue) then
-						exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
-					else
-						exports.ox_inventory:SetItemCreateDate(slot.id, newValue)
-					end
+					exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
 				end
 			end)
 		end)
