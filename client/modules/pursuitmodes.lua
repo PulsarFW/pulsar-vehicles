@@ -220,11 +220,11 @@ function ApplyPursuitStuffToVehicle(mode)
             local percentage = (100 / (#_inPursuitVehicleSettings - 1)) * (mode - 1)
 
             print(_inPursuitVehicleSettings[_inPursuitVehicleMode].name)
-            exports['pulsar-hud']:ApplyUniqueBuff("pursuit-modes", -1,
+            exports['pulsar-hud']:ApplyBuff("pursuit-modes", -1,
                 _inPursuitVehicleSettings[_inPursuitVehicleMode].name)
             --TriggerEvent("Status:Client:Update", "pursuit-modes", percentage)
         else
-            exports['pulsar-hud']:RemoveBuffType("pursuit-modes")
+            exports['pulsar-hud']:RemoveBuff("pursuit-modes")
             --TriggerEvent("Status:Client:Update", "pursuit-modes", 0)
         end
     end
@@ -243,6 +243,6 @@ function RemovePursuitStuffFromVehicle(veh)
     SetVehicleLights(veh, 0)
     ToggleVehicleMod(veh, 22, false)
 
-    exports['pulsar-hud']:RemoveBuffType("pursuit-modes")
+    exports['pulsar-hud']:RemoveBuff("pursuit-modes")
     --TriggerEvent("Status:Client:Update", "pursuit-modes", 0)
 end
