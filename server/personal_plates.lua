@@ -187,7 +187,7 @@ function RegisterPersonalPlateCallbacks()
                 local isRemoved = exports['pulsar-vehicles']:DonatorPlatesRemove(plyr:GetData("Identifier"), data)
 
                 if isRemoved then
-                    exports.ox_inventory:AddItem(char:GetData("SID"), "personal_plates_donator", data, {}, 1)
+                    exports.ox_inventory:AddItem(source, "personal_plates_donator", data, {}, 1)
                     cb(true)
 
                     exports['pulsar-core']:LoggerWarn(
