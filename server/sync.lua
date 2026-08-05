@@ -29,15 +29,15 @@ end)
 RegisterServerEvent('VehicleSync:Server:BodyRepair', function(vNet, door, loose, instant)
     local veh = NetworkGetEntityFromNetworkId(vNet)
 
-    local ent = Entity(veh)
-    if ent and ent.state then
-        ent.state.Damage = {
+    local ent = plsr.State.Entity(veh)
+    if ent then
+        ent.Damage = {
             Body = 1000.0,
             Engine = 1000.0
         }
-        ent.state.RepairKits = 0
+        ent.RepairKits = 0
 
-        ent.state.BlownUp = false
+        ent.BlownUp = false
     end
 
     TriggerClientEvent('VehicleSync:Client:BodyRepair', -1, vNet)
@@ -46,17 +46,17 @@ end)
 RegisterServerEvent('VehicleSync:Server:EngineRepair', function(vNet, door, loose, instant)
     local veh = NetworkGetEntityFromNetworkId(vNet)
 
-    local ent = Entity(veh)
-    if ent and ent.state then
-        local currentStuff = ent.state.Damage or {}
+    local ent = plsr.State.Entity(veh)
+    if ent then
+        local currentStuff = ent.Damage or {}
 
-        ent.state.Damage = {
+        ent.Damage = {
             Body = currentStuff.Body or 1000.0,
             Engine = 1000.0
         }
-        ent.state.RepairKits = 0
+        ent.RepairKits = 0
 
-        ent.state.BlownUp = false
+        ent.BlownUp = false
     end
 end)
 

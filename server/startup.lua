@@ -1,21 +1,22 @@
+local _ran = false
+
 function Startup()
-    local charVehicleCount = MySQL.scalar.await(
-        "SELECT COUNT(*) FROM vehicles WHERE OwnerType = 0"
-    )
+    if _ran then return end
+    _ran = true
 
-    if charVehicleCount then
-        exports['pulsar-core']:LoggerTrace('Vehicles',
-            string.format('Loaded ^2%s^7 Character Owned Vehicles', charVehicleCount))
-    end
+    EnsureVehiclesTable(function()
+        plsr.Database:Scalar("SELECT COUNT(*) FROM `vehicles` WHERE `owner_type` = 0", nil, function(success, count)
+            if success then
+                plsr.Logger:Trace('Vehicles', string.format('Loaded ^2%s^7 Character Owned Vehicles', count))
+            end
+        end)
 
-    local fleetVehicleCount = MySQL.scalar.await(
-        "SELECT COUNT(*) FROM vehicles WHERE OwnerType = 1"
-    )
-
-    if fleetVehicleCount then
-        exports['pulsar-core']:LoggerTrace('Vehicles',
-            string.format('Loaded ^2%s^7 Fleet Owned Vehicles', fleetVehicleCount))
-    end
+        plsr.Database:Scalar("SELECT COUNT(*) FROM `vehicles` WHERE `owner_type` = 1", nil, function(success, count)
+            if success then
+                plsr.Logger:Trace('Vehicles', string.format('Loaded ^2%s^7 Fleet Owned Vehicles', count))
+            end
+        end)
+    end)
 
     -- CreateThread(function()
     --     -- Let the server startup, no vehicles need to be saved in the first 2 mins
@@ -40,9 +41,9 @@ function Startup()
     --             if timeSpread < 2000 then
     --                 timeSpread = 2000
     --             end
-
-    --             exports['pulsar-core']:LoggerInfo('Vehicles', 'Running Periodical Save For '.. #savingVINs .. ' Vehicles')
-
+    
+    --             Logger:Info('Vehicles', 'Running Periodical Save For '.. #savingVINs .. ' Vehicles')
+    
     --             for k, v in ipairs(savingVINs) do
     --                 SaveVehicle(v)
     --                 Wait(timeSpread)
@@ -64,9 +65,9 @@ function Startup()
 
             for k, v in ipairs(vehs) do
                 if DoesEntityExist(v) then
-                    local state = Entity(v).state
+                    local state = plsr.State.Entity(v)
                     if state and not state.Owned and not state.SpawnTemp and state.LastDriven and state.LastDriven <= timeBefore then
-                        exports['pulsar-vehicles']:Delete(v, function() end)
+                        plsr.Vehicles:Delete(v, function() end)
                     end
                 end
             end

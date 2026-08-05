@@ -1,7 +1,7 @@
 function GetPedSeatInVehicle(veh, ped)
     local totalSeats = GetVehicleMaxNumberOfPassengers(veh)
     for i = -1, totalSeats do
-        if GetPedInVehicleSeat(veh, i) == ped then
+        if GetPedInVehicleSeat(veh, i) == ped then 
             return i
         end
     end
@@ -34,7 +34,7 @@ function DoVehicleLockShit(veh)
     SetVehicleLights(veh, 0)
 end
 
--- Because the normal one doesn't work
+-- Because the normal one doesn't fucking work
 function GetClosestVehicleWithinRadius(coords, radius)
     if not radius then
         radius = 5.0
@@ -43,7 +43,7 @@ function GetClosestVehicleWithinRadius(coords, radius)
     local poolVehicles = GetGamePool('CVehicle')
     local lastDist = radius
     local lastVeh = false
-
+    
     for k, v in ipairs(poolVehicles) do
         if DoesEntityExist(v) then
             local dist = #(coords - GetEntityCoords(v))
@@ -112,16 +112,16 @@ function IsVehicleEmpty(veh)
 end
 
 function UnlockAnim()
-    CreateThread(function()
-        while not HasAnimDictLoaded('anim@heists@keycard@') do
-            RequestAnimDict('anim@heists@keycard@')
-            Wait(10)
-        end
+	CreateThread(function()
+		while not HasAnimDictLoaded('anim@heists@keycard@') do
+			RequestAnimDict('anim@heists@keycard@')
+			Wait(10)
+		end
 
-        TaskPlayAnim(LocalPlayer.state.ped, 'anim@heists@keycard@', 'exit', 8.0, 1.0, -1, 48, 0, 0, 0, 0)
-        Wait(750)
-        StopAnimTask(LocalPlayer.state.ped, 'anim@heists@keycard@', 'exit', 1.0)
-    end)
+		TaskPlayAnim(PlayerPedId(), 'anim@heists@keycard@', 'exit', 8.0, 1.0, -1, 48, 0, 0, 0, 0)
+		Wait(750)
+        StopAnimTask(PlayerPedId(), 'anim@heists@keycard@', 'exit', 1.0)
+	end)
 end
 
 function GetVehicleMPH(veh)

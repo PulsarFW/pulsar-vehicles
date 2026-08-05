@@ -17,22 +17,17 @@ function UpdateVehicleIndicatorState(veh, state)
 end
 
 function DoVehicleIndicatorUpdate(veh, newState)
-    local vehEnt = Entity(veh)
+    local vehEnt = plsr.State.Entity(veh)
     if vehEnt then
-        vehEnt.state:set('indicators', newState, true)
-        --TriggerServerEvent('VehicleSync:Server:SyncIndicators', VehToNet(veh), newState)
+        vehEnt.indicators = newState
     end
 end
 
-AddStateBagChangeHandler('indicators', nil, function(bagName, key, value, _unused, replicated)
-    local vNet, count = bagName:gsub('entity:', '')
-    if count > 0 then
-        local veh = NetToVeh(tonumber(vNet))
-
-        if DoesEntityExist(veh) and SYNCED_VEHICLES[veh] then
-            SYNCED_VEHICLES[veh].indicators = value
-            UpdateVehicleIndicatorState(veh, value)
-        end
+plsr.State.Entity:WatchKey('indicators', function(netId, value)
+    local veh = NetToVeh(netId)
+    if DoesEntityExist(veh) and SYNCED_VEHICLES[veh] then
+        SYNCED_VEHICLES[veh].indicators = value
+        UpdateVehicleIndicatorState(veh, value)
     end
 end)
 

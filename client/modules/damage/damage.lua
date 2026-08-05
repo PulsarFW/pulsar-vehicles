@@ -1,6 +1,6 @@
 DAMAGE_VEHICLE = false
 
-SENT_DAMAGE = {}
+SENT_FUCKED_DAMAGE = {}
 
 LAST_DAMAGE_ENGINE = 1000.0
 LAST_DAMAGE_BODY = 1000.0
@@ -13,7 +13,7 @@ AddEventHandler("Vehicles:Client:ForceUpdateVehicleDamageState", function(vehicl
 		LAST_DAMAGE_ENGINE = newDamage.Engine
 		LAST_DAMAGE_BODY = newDamage.Body
 
-		SENT_DAMAGE[vehicle] = false
+		SENT_FUCKED_DAMAGE[vehicle] = false
 	end
 end)
 
@@ -40,29 +40,29 @@ AddEventHandler("gameEventTriggered", function(event, args)
 					local bodyHealthDiff = math.floor(LAST_DAMAGE_BODY - bodyHealth)
 
 					if engineHealthDiff > 0.0 then
-						exports['pulsar-core']:LoggerTrace("Vehicles", "Engine Damaged - New Health: " .. engineHealth)
+						plsr.Logger:Trace("Vehicles", "Engine Damaged - New Health: " .. engineHealth)
 					end
 
 					if bodyHealthDiff > 0.0 then
-						exports['pulsar-core']:LoggerTrace(
+						plsr.Logger:Trace(
 							"Vehicles",
 							"Body Damage Taken: " .. bodyHealthDiff .. " - New Health: " .. bodyHealth
 						)
 
 						-- if engineRunning and VEHICLE_INSIDE == DAMAGE_VEHICLE and bodyHealthDiff >= 50.0 and math.random(55) >= 35 then
 						if engineRunning and VEHICLE_INSIDE == DAMAGE_VEHICLE and bodyHealthDiff >= 200.0 then
-							local ent = Entity(VEHICLE_INSIDE).state
+							local ent = plsr.State.Entity(VEHICLE_INSIDE)
 							if not ent.stalls then
-								Entity(VEHICLE_INSIDE).state:set("stalls", 1, true)
+								ent.stalls = 1
 							else
-								Entity(VEHICLE_INSIDE).state:set("stalls", ent.stalls + 1, true)
+								ent.stalls = ent.stalls + 1
 							end
 
 							local stalling = true
-							exports["pulsar-hud"]:Notification("error", "Engine Stalled")
+							plsr.Notification:Error("Engine Stalled")
 							CreateThread(function()
 								while stalling do
-									exports['pulsar-vehicles']:EngineForce(DAMAGE_VEHICLE, false)
+									plsr.Vehicles.Engine:Force(DAMAGE_VEHICLE, false)
 									Wait(500)
 								end
 							end)
@@ -109,12 +109,12 @@ AddEventHandler("gameEventTriggered", function(event, args)
 					LAST_DAMAGE_ENGINE = engineHealth
 					LAST_DAMAGE_BODY = bodyHealth
 
-					local vehEnt = Entity(DAMAGE_VEHICLE)
-					if vehEnt and vehEnt.state then
-						vehEnt.state:set("Damage", {
+					local vehEnt = plsr.State.Entity(DAMAGE_VEHICLE)
+					if vehEnt then
+						vehEnt.Damage = {
 							Engine = LAST_DAMAGE_ENGINE,
 							Body = LAST_DAMAGE_BODY,
-						}, true)
+						}
 					end
 				end
 			end
@@ -126,7 +126,7 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 	AddTaskBeforeVehicleThread("regular_damage", function(veh, class)
 		DAMAGE_VEHICLE = veh
 
-		explode = false
+		fuckingExplode = false
 
 		INSIDE_DAMAGE_MODIFIER = 2.0
 		if _damageMultiplierOverrides[class] then
@@ -145,14 +145,14 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 		LAST_DAMAGE_ENGINE = math.ceil(GetVehicleEngineHealth(veh))
 		LAST_DAMAGE_BODY = math.ceil(GetVehicleEngineHealth(veh))
 
-		local vehEnt = Entity(veh)
-		if vehEnt and vehEnt.state then
-			if vehEnt.state.Damage and vehEnt.state.Damage.Engine and vehEnt.state.Damage.Body then
-				SetVehicleEngineHealth(veh, vehEnt.state.Damage.Engine + 0.0)
-				SetVehicleBodyHealth(veh, vehEnt.state.Damage.Body + 0.0)
+		local vehEnt = plsr.State.Entity(veh)
+		if vehEnt then
+			if vehEnt.Damage and vehEnt.Damage.Engine and vehEnt.Damage.Body then
+				SetVehicleEngineHealth(veh, vehEnt.Damage.Engine + 0.0)
+				SetVehicleBodyHealth(veh, vehEnt.Damage.Body + 0.0)
 
-				LAST_DAMAGE_ENGINE = vehEnt.state.Damage.Engine
-				LAST_DAMAGE_BODY = vehEnt.state.Damage.Body
+				LAST_DAMAGE_ENGINE = vehEnt.Damage.Engine
+				LAST_DAMAGE_BODY = vehEnt.Damage.Body
 			end
 		end
 	end)
@@ -175,30 +175,30 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 			end
 
 			if engineHealth <= -100.0 then
-				if INSIDE_HAS_DEGEN and not SENT_DAMAGE[veh] then
-					SENT_DAMAGE[veh] = true
+				if INSIDE_HAS_DEGEN and not SENT_FUCKED_DAMAGE[veh] then
+					SENT_FUCKED_DAMAGE[veh] = true
 					RunVehiclePartsDamage(veh, false, false, true)
 				end
 
 				local allowExplode = math.random(5, engineRunning and 40 or 60)
-				if explode or (allowExplode <= 7) then
-					explode = true
+				if fuckingExplode or (allowExplode <= 7) then
+					fuckingExplode = true
 					SetDisableVehiclePetrolTankDamage(veh, false)
 					SetDisableVehiclePetrolTankFires(veh, false)
 					SetVehiclePetrolTankHealth(veh, 200.0)
 				else
-					explode = false
+					fuckingExplode = false
 					SetDisableVehiclePetrolTankDamage(veh, true)
 					SetDisableVehiclePetrolTankFires(veh, true)
 					SetVehiclePetrolTankHealth(veh, 4000.0)
 				end
 			else
-				if explode then
-					explode = false
+				if fuckingExplode then
+					fuckingExplode = false
 				end
 
-				if SENT_DAMAGE[veh] then
-					SENT_DAMAGE[veh] = false
+				if SENT_FUCKED_DAMAGE[veh] then
+					SENT_FUCKED_DAMAGE[veh] = false
 				end
 			end
 		end

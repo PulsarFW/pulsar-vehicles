@@ -8,98 +8,85 @@ local seatbeltExemptVehicles = {
 
 local seatbeltThread = false
 
-local MIN_FLY_NO_SB = math.floor(27 * 2.237)  -- 60mph
+local MIN_FLY_NO_SB = math.floor(27 * 2.237) -- 60mph
 local MIN_FLY_BELT = math.floor(49.2 * 2.237) -- 110mph
 local MIN_FLY_HARN = math.floor(89.5 * 2.237) -- 200mph
 
 AddEventHandler('Vehicles:Client:StartUp', function()
-    exports["pulsar-kbs"]:Add('vehicle_seatbelt', 'b', 'keyboard', 'Vehicle - Toggle Seatbelt / Harness',
-        function()
-            if VEHICLE_INSIDE and not seatbeltExemptVehicles[VEHICLE_CLASS] then
-                local vState = Entity(VEHICLE_INSIDE)
-                if vState.state.Harness and vState.state.Harness > 0 and (VEHICLE_SEAT == -1 or VEHICLE_SEAT == 0) then
-                    if not VEHICLE_SEATBELT then
-                        exports['pulsar-hud']:ProgressWithTickEvent({
-                            name = "vehicle_harness",
-                            duration = VEHICLE_SEATBELT and 1000 or 2000,
-                            label = VEHICLE_SEATBELT and "Removing Harness" or "Applying Harness",
-                            tickrate = 1000,
-                            useWhileDead = false,
-                            canCancel = true,
-                            disarm = false,
-                            ignoreModifier = true,
-                            controlDisables = {
-                                disableMovement = false,
-                                disableCarMovement = false,
-                                disableMouse = false,
-                                disableCombat = false,
-                            },
-                        }, function()
-                            if not VEHICLE_INSIDE then
-                                exports['pulsar-hud']:ProgressFail()
-                            end
-                        end, function(cancelled)
-                            if not cancelled and VEHICLE_INSIDE then
-                                exports["pulsar-sounds"]:PlayOne('seatbelt.ogg', 0.4)
-                                if VEHICLE_SEATBELT then
-                                    SetFlyThroughWindscreenParams(MIN_FLY_NO_SB, 1.0, 17.0, 1.0)
-                                    VEHICLE_SEATBELT = false
-                                    VEHICLE_HARNESS = false
-                                else
-                                    SetFlyThroughWindscreenParams(MIN_FLY_HARN, 1.0, 17.0, 9999999.0)
-                                    VEHICLE_SEATBELT = true
-                                    VEHICLE_HARNESS = vState.state.Harness
-                                end
-                                TriggerEvent('Vehicles:Client:Seatbelt', VEHICLE_SEATBELT)
-                            end
-                        end)
-                    else
-                        if VEHICLE_INSIDE then
-                            exports["pulsar-sounds"]:PlayOne('seatbelt.ogg', 0.4)
+    plsr.Keybinds:Add('vehicle_seatbelt', 'b', 'keyboard', 'Vehicle - Toggle Seatbelt / Harness', function()
+        if VEHICLE_INSIDE and not seatbeltExemptVehicles[VEHICLE_CLASS] then
+            local vState = plsr.State.Entity(VEHICLE_INSIDE)
+            if vState.Harness and vState.Harness > 0 and (VEHICLE_SEAT == -1 or VEHICLE_SEAT == 0) then
+                if not VEHICLE_SEATBELT then
+                    plsr.Progress:ProgressWithTickEvent({
+                        name = "vehicle_harness",
+                        duration = VEHICLE_SEATBELT and 1000 or 2000,
+                        label = VEHICLE_SEATBELT and "Removing Harness" or "Applying Harness",
+                        tickrate = 1000,
+                        useWhileDead = false,
+                        canCancel = true,
+                        disarm = false,
+                        ignoreModifier = true,
+                        controlDisables = {
+                            disableMovement = false,
+                            disableCarMovement = false,
+                            disableMouse = false,
+                            disableCombat = false,
+                        },
+                    }, function()
+                        if not VEHICLE_INSIDE then
+                            plsr.Progress:Fail()
+                        end
+                    end, function(cancelled)
+                        if not cancelled and VEHICLE_INSIDE then
+                            plsr.Sounds.Do.Play:One('seatbelt.ogg', 0.4)
                             if VEHICLE_SEATBELT then
                                 SetFlyThroughWindscreenParams(MIN_FLY_NO_SB, 1.0, 17.0, 1.0)
                                 VEHICLE_SEATBELT = false
                                 VEHICLE_HARNESS = false
                             else
-                                SetFlyThroughWindscreenParams(MIN_FLY_HARN, 1.0, 17.0, 99999999.0)
+                                SetFlyThroughWindscreenParams(MIN_FLY_HARN, 1.0, 17.0, 9999999.0)
                                 VEHICLE_SEATBELT = true
-                                VEHICLE_HARNESS = vState.state.Harness
+                                VEHICLE_HARNESS = vState.Harness
                             end
                             TriggerEvent('Vehicles:Client:Seatbelt', VEHICLE_SEATBELT)
                         end
-                    end
+                    end)
                 else
-                    exports["pulsar-sounds"]:PlayOne('seatbelt.ogg', 0.4)
-                    VEHICLE_SEATBELT = not VEHICLE_SEATBELT
-                    TriggerEvent('Vehicles:Client:Seatbelt', VEHICLE_SEATBELT)
-                    if VEHICLE_SEATBELT then
-                        SetFlyThroughWindscreenParams(MIN_FLY_BELT, 40.0, 17.0, 500.0)
-                        exports["pulsar-hud"]:Notification("success", 'Seatbelt On')
-                    else
-                        SetFlyThroughWindscreenParams(MIN_FLY_NO_SB, 1.0, 17.0, 1.0)
-                        exports["pulsar-hud"]:Notification("error", 'Seatbelt Off')
+                    if VEHICLE_INSIDE then
+                        plsr.Sounds.Do.Play:One('seatbelt.ogg', 0.4)
+                        if VEHICLE_SEATBELT then
+                            SetFlyThroughWindscreenParams(MIN_FLY_NO_SB, 1.0, 17.0, 1.0)
+                            VEHICLE_SEATBELT = false
+                            VEHICLE_HARNESS = false
+                        else
+                            SetFlyThroughWindscreenParams(MIN_FLY_HARN, 1.0, 17.0, 99999999.0)
+                            VEHICLE_SEATBELT = true
+                            VEHICLE_HARNESS = vState.Harness
+                        end
+                        TriggerEvent('Vehicles:Client:Seatbelt', VEHICLE_SEATBELT)
                     end
+                end
+            else
+                plsr.Sounds.Do.Play:One('seatbelt.ogg', 0.4)
+                VEHICLE_SEATBELT = not VEHICLE_SEATBELT
+                TriggerEvent('Vehicles:Client:Seatbelt', VEHICLE_SEATBELT)
+                if VEHICLE_SEATBELT then
+                    SetFlyThroughWindscreenParams(MIN_FLY_BELT, 40.0, 17.0, 500.0)
+                    plsr.Notification:Success('Seatbelt On')
+                else
+                    SetFlyThroughWindscreenParams(MIN_FLY_NO_SB, 1.0, 17.0, 1.0)
+                    plsr.Notification:Error('Seatbelt Off')
                 end
             end
-        end)
+        end
+    end)
 
-    exports['pulsar-core']:RegisterClientCallback('Vehicles:InstallHarness', function(data, cb)
-        local coords = GetEntityCoords(PlayerPedId())
-        local maxDistance = 2.0
-        local includePlayerVehicle = true
-
-        local target = lib.getClosestVehicle(coords, maxDistance, includePlayerVehicle)
-
-        if target and DoesEntityExist(target) and IsEntityAVehicle(target) then
-            if exports['pulsar-vehicles']:UtilsIsCloseToVehicle(target) then
-                local vehState = Entity(target).state
-                if vehState.Harness and vehState.Harness > 0 then
-                    exports['pulsar-hud']:Notification("error", "Vehicle already has a harness installed")
-                    cb(false)
-                    return
-                end
-
-                exports['pulsar-hud']:Progress({
+    plsr.Callbacks:RegisterClientCallback('Vehicles:InstallHarness', function(data, cb)
+        local target = plsr.Targeting:GetEntityPlayerIsLookingAt()
+        if target and target.entity and DoesEntityExist(target.entity) and IsEntityAVehicle(target.entity) then
+            if plsr.Vehicles.Utils:IsCloseToVehicle(target.entity) then
+                plsr.Progress:Progress({
                     name = "vehicle_installing_harness",
                     duration = 25000,
                     label = "Installing Harness",
@@ -115,8 +102,8 @@ AddEventHandler('Vehicles:Client:StartUp', function()
                         anim = "mechanic2",
                     },
                 }, function(cancelled)
-                    if not cancelled and exports['pulsar-vehicles']:UtilsIsCloseToVehicle(target) then
-                        cb(VehToNet(target))
+                    if not cancelled and plsr.Vehicles.Utils:IsCloseToVehicle(target.entity) then
+                        cb(VehToNet(target.entity))
                     else
                         cb(false)
                     end
@@ -139,7 +126,7 @@ AddEventHandler('Vehicles:Client:EnterVehicle', function(v, seat)
         local speedBuffers = {}
         local velBuffers = {}
 
-        SetPedConfigFlag(LocalPlayer.state.ped, 32, true)
+        SetPedConfigFlag(PlayerPedId(), 32, true)
         SetFlyThroughWindscreenParams(MIN_FLY_NO_SB, 1.0, 17.0, 1.0)
 
         CreateThread(function()
@@ -160,7 +147,7 @@ AddEventHandler('Vehicles:Client:EnterVehicle', function(v, seat)
                 if speedBuffers[2] ~= nil and GetEntitySpeedVector(VEHICLE_INSIDE, true).y > 1.0 and (speedBuffers[1] >= minSpeedActual) and ((speedBuffers[2] - speedBuffers[1]) > (speedBuffers[1] * 0.8)) then
                     -- if not VEHICLE_HARNESS or (VEHICLE_HARNESS and VEHICLE_HARNESS <= 0) then
                     --     if not VEHICLE_SEATBELT then
-                    --         exports["pulsar-hud"]:Notification("info", 'Maybe You Should be Wearing a Seatbelt...', 8000)
+                    --         Notification:Info('Maybe You Should be Wearing a Seatbelt...', 8000)
                     --     end
 
                     --     local pedCoords = GetEntityCoords(GLOBAL_PED)
@@ -169,17 +156,17 @@ AddEventHandler('Vehicles:Client:EnterVehicle', function(v, seat)
                     --     SetEntityVelocity(GLOBAL_PED, velBuffers[2].x, velBuffers[2].y, velBuffers[2].z)
                     --     Wait(1)
                     --     SetPedToRagdoll(GLOBAL_PED, 1000, 1000, 0, 0, 0, 0)
-
+    
                     --     local model = GetEntityModel(VEHICLE_INSIDE)
-
+    
                     --     if IsThisModelAPlane(model) then
-                    --         exports['pulsar-mdt']:EmergencyAlertsCreateIfReported(300.0, "planeaccident", true)
+                    --         EmergencyAlerts:CreateIfReported(300.0, "planeaccident", true)
                     --     elseif IsThisModelAHeli(model) then
-                    --         exports['pulsar-mdt']:EmergencyAlertsCreateIfReported(300.0, "heliaccident", true)
+                    --         EmergencyAlerts:CreateIfReported(300.0, "heliaccident", true)
                     --     elseif IsThisModelABoat(model) or IsThisModelAJetski(model) then
-                    --         exports['pulsar-mdt']:EmergencyAlertsCreateIfReported(300.0, "boataccident", true)
+                    --         EmergencyAlerts:CreateIfReported(300.0, "boataccident", true)
                     --     else
-                    --         exports['pulsar-mdt']:EmergencyAlertsCreateIfReported(300.0, "caraccident", true)
+                    --         EmergencyAlerts:CreateIfReported(300.0, "caraccident", true)
                     --     end
                     -- else
                     --     print('harness get facked')
@@ -225,7 +212,7 @@ function GetEntityForwardVector(entity)
 end
 
 AddEventHandler('Vehicles:Client:ExitVehicle', function()
-    -- if GetEntitySpeed(LocalPlayer.state.ped) > 10.0 then
+    -- if GetEntitySpeed(PlayerPedId()) > 10.0 then
     --     print('flew out')
     -- end
 

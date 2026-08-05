@@ -55,55 +55,79 @@ function GenerateVIN(isOwned)
 	return vin
 end
 
-exports("VINGenerateLocal", function()
-	local generated = GenerateVIN(false)
-	while GENERATED_LOCAL_VINS[generated] do
-		generated = GenerateVIN(false)
-	end
-	GENERATED_LOCAL_VINS[generated] = true
-	return generated
-end)
+_vehIdentification = {
+	Identification = {
+		VIN = {
+			GenerateLocal = function(self)
+				local generated = GenerateVIN(false)
+				while GENERATED_LOCAL_VINS[generated] do
+					generated = GenerateVIN(false)
+				end
+				GENERATED_LOCAL_VINS[generated] = true
+				return generated
+			end,
+			GenerateOwned = function(self)
+				local generated = GenerateVIN(true)
+				while IsVINOwned(generated) do
+					generated = GenerateVIN(true)
+				end
 
-exports("VINGenerateOwned", function()
-	local generated = GenerateVIN(true)
-	while IsVINOwned(generated) do
-		generated = GenerateVIN(true)
-	end
+				GENERATED_TEMP_VINS[generated] = true
 
-	GENERATED_TEMP_VINS[generated] = true
-
-	return generated
-end)
-
-exports("PlateGenerate", function(isTemp)
-	local plate = GeneratePlate()
-	while IsPlateOwned(plate) and GENERATED_TEMP_PLATES[plate] do
-		plate = GeneratePlate()
-	end
-	if isTemp then
-		GENERATED_TEMP_PLATES[plate] = true
-	end
-	return plate
-end)
+				return generated
+			end,
+		},
+		Plate = {
+			Generate = function(self, isTemp)
+				local plate = GeneratePlate()
+				while IsPlateOwned(plate) and GENERATED_TEMP_PLATES[plate] do
+					plate = GeneratePlate()
+				end
+				if isTemp then
+					GENERATED_TEMP_PLATES[plate] = true
+				end
+				return plate
+			end,
+		},
+	},
+}
 
 function IsVINOwned(vin)
 	if GENERATED_TEMP_VINS[vin] then
 		return true
 	end
 
-	local result = MySQL.single.await(
-		"SELECT VIN FROM vehicles WHERE VIN = ?",
-		{ vin }
-	)
+	local p = promise.new()
 
-	return result ~= nil
+	EnsureVehiclesTable(function()
+		plsr.Database:Scalar("SELECT COUNT(*) FROM `vehicles` WHERE `vin` = ?", { vin }, function(success, count)
+			p:resolve(success and count > 0)
+		end)
+	end)
+
+	local res = Citizen.Await(p)
+	return res
 end
 
 function IsPlateOwned(plate)
-	local result = MySQL.single.await(
-		"SELECT RegisteredPlate FROM vehicles WHERE RegisteredPlate = ? OR JSON_EXTRACT(Properties, '$.FakePlate') = ?",
-		{ plate, plate }
-	)
+	local p = promise.new()
 
-	return result ~= nil
+	EnsureVehiclesTable(function()
+		plsr.Database:Scalar(
+			"SELECT COUNT(*) FROM `vehicles` WHERE `registered_plate` = ? OR `fake_plate` = ?",
+			{ plate, plate },
+			function(success, count)
+				p:resolve(success and count > 0)
+			end
+		)
+	end)
+
+	local res = Citizen.Await(p)
+	return res
 end
+
+AddEventHandler("Proxy:Shared:ExtendReady", function(component)
+	if component == "Vehicles" then
+		exports["pulsar_core"]:ExtendComponent(component, _vehIdentification)
+	end
+end)

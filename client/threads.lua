@@ -38,13 +38,13 @@ AddEventHandler("Vehicles:Client:BecameDriver", function(veh, seat, class)
 
 		NetworkRequestControlOfEntity(veh)
 
-		exports['pulsar-core']:LoggerTrace("Vehicles", "Execute Vehicle Pre Thread Tasks")
+		plsr.Logger:Trace("Vehicles", "Execute Vehicle Pre Thread Tasks")
 
 		for k, v in pairs(PRE_THREAD_TASKS) do
 			v.func(veh, class)
 		end
 
-		exports['pulsar-core']:LoggerTrace("Vehicles", "Start Vehicle Thread on " .. veh)
+		plsr.Logger:Trace("Vehicles", "Start Vehicle Thread on " .. veh)
 		THREAD_VEHICLE = veh
 		THREAD_VEHICLE_CLASS = GetVehicleClass(THREAD_VEHICLE)
 	end)
@@ -106,7 +106,7 @@ AddEventHandler("Vehicles:Client:CharacterLogin", function()
 						(not IsEntityDead(v) and v ~= VEHICLE_INSIDE and tryingToEnter ~= v)
 						and NetworkHasControlOfEntity(v)
 					then
-						local sb = Entity(v).state
+						local sb = plsr.State.Entity(v)
 						if sb and sb.VEH_IGNITION then
 							SetVehicleEngineOn(v, true, true, true)
 						end
@@ -118,11 +118,11 @@ AddEventHandler("Vehicles:Client:CharacterLogin", function()
 						end
 
 						if NetworkHasControlOfEntity(v) then
-							local state = Entity(v).state
+							local state = plsr.State.Entity(v)
 							if state and state.VIN then
 								local data = state.awaitingProperties
 								if data then
-									exports['pulsar-core']:LoggerInfo(
+									plsr.Logger:Info(
 										"Vehicles",
 										string.format("Applying Vehicle Properties To Vehicle VIN: %s", state.VIN)
 									)
@@ -134,7 +134,7 @@ AddEventHandler("Vehicles:Client:CharacterLogin", function()
 											state.ServerEntity,
 											properties
 										)
-										state:set("awaitingProperties", false, true)
+										state.awaitingProperties = false
 									elseif data.needInit then
 										local properties = GetVehicleProperties(v, true)
 										TriggerServerEvent(
@@ -142,24 +142,24 @@ AddEventHandler("Vehicles:Client:CharacterLogin", function()
 											state.ServerEntity,
 											properties
 										)
-										state:set("awaitingProperties", false, true)
+										state.awaitingProperties = false
 									else
 										SetVehicleProperties(v, data.properties, data.propertiesData)
 										if data.damage then
 											SetVehicleDamageData(v, data.damage)
 										end
-										state:set("awaitingProperties", false, true)
+										state.awaitingProperties = false
 									end
 								end
 
 								if state.awaitingEngineHealth then
 									SetVehicleEngineHealth(v, state.awaitingEngineHealth + 0.0)
-									state:set("awaitingEngineHealth", false, true)
+									state.awaitingEngineHealth = false
 								end
 
 								if state.awaitingBlownUp then
 									NetworkExplodeVehicle(v, 0, 0, 0)
-									state:set("awaitingBlownUp", false, true)
+									state.awaitingBlownUp = false
 								end
 							end
 						end
@@ -179,19 +179,19 @@ AddEventHandler("Vehicles:Client:CharacterLogin", function()
 		end
 	end)
 
-	CreateThread(function()
+    CreateThread( function()
 		local restoreMode1, restoreMode2 = nil, nil
-		while _characterLoaded do
-			if IsPedInAnyVehicle(LocalPlayer.state.ped) then
+        while _characterLoaded do
+			if IsPedInAnyVehicle(PlayerPedId()) then
 				playerPed = PlayerPedId()
 				if IsPedArmed(playerPed, 6) then
 					if IsPedDoingDriveby(playerPed) then
 						if GetFollowPedCamViewMode() <= 2 or GetFollowVehicleCamViewMode() <= 2 then
-							LocalPlayer.state.adjustingCam = true
-							local curWeapon = exports.ox_inventory:GetEquippedHash()
+							plsr.State.flags.adjustingCam = true
+							local curWeapon = plsr.Weapons:GetEquippedHash()
 							SetCurrentPedWeapon(playerPed, `WEAPON_UNARMED`, true)
 							SetCurrentPedVehicleWeapon(playerPed, `WEAPON_UNARMED`)
-							SetPlayerCanDoDriveBy(PlayerId(), false)
+							SetPlayerCanDoDriveBy(PlayerId(),false)
 							restoreMode1 = GetFollowPedCamViewMode()
 							restoreMode2 = GetFollowVehicleCamViewMode()
 							SetFollowPedCamViewMode(4)
@@ -202,12 +202,12 @@ AddEventHandler("Vehicles:Client:CharacterLogin", function()
 							SetCurrentPedWeapon(playerPed, curWeapon, true)
 							SetCurrentPedVehicleWeapon(playerPed, curWeapon)
 							SetPlayerCanDoDriveBy(PlayerId(), true)
-							LocalPlayer.state.adjustingCam = false
+							plsr.State.flags.adjustingCam = false
 						end
 					else
-						DisableControlAction(0, 36, true)
+						DisableControlAction(0,36,true)
 						if GetPedStealthMovement(playerPed) == 1 then
-							SetPedStealthMovement(playerPed, 0)
+							SetPedStealthMovement(playerPed,0)
 						end
 
 						if restoreMode1 ~= nil or restoreMode2 ~= nil then
@@ -228,6 +228,6 @@ AddEventHandler("Vehicles:Client:CharacterLogin", function()
 			else
 				Wait(200)
 			end
-		end
-	end)
+        end
+    end)
 end)

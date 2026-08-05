@@ -18,52 +18,51 @@ local vehicleDoorNames = {
 	[5] = "Trunk",
 }
 
-AddEventHandler('onClientResourceStart', function(resource)
-	if resource == GetCurrentResourceName() then
-		Wait(1000)
+CreateThread(function()
+		plsr.State.flags.adjustingCam = false
+
 		RegisterCallbacks()
 
 		TriggerEvent("Vehicles:Client:StartUp")
 
-		exports["pulsar-kbs"]:Add("toggle_engine", "IOM_WHEEL_UP", "MOUSE_WHEEL", "Vehicle - Toggle Engine",
-			function()
-				if VEHICLE_INSIDE and VEHICLE_SEAT == -1 then
-					if IsPauseMenuActive() ~= 1 then
-						exports['pulsar-vehicles']:EngineToggle()
-					end
+		plsr.Keybinds:Add("toggle_engine", "G", "keyboard", "Vehicle - Toggle Engine", function()
+			if VEHICLE_INSIDE and VEHICLE_SEAT == -1 then
+				if IsPauseMenuActive() ~= 1 then
+					plsr.Vehicles.Engine:Toggle(VEHICLE_INSIDE)
 				end
-			end)
-		exports['pulsar-hud']:InteractionRegisterMenu("veh_quick_actions", "Open Vehicle Menu", "car", function()
+			end
+		end)
+
+		plsr.Interaction:RegisterMenu("veh_quick_actions", 'Vehicle', "car", function()
 			if VEHICLE_INSIDE then
-				local vehEnt = Entity(VEHICLE_INSIDE)
+				local vehEnt = plsr.State.Entity(VEHICLE_INSIDE)
 				local subMenu = {}
 				local seatAmount = GetVehicleModelNumberOfSeats(GetEntityModel(VEHICLE_INSIDE))
-				exports['pulsar-hud']:InteractionShowMenu({
+				plsr.Interaction:ShowMenu({
 					{
 						icon = "key",
 						label = "Give Keys",
 						shouldShow = function()
-							return VEHICLE_INSIDE and
-								exports['pulsar-vehicles']:KeysHas(vehEnt.state.VIN, vehEnt.state.GroupKeys)
+							return VEHICLE_INSIDE and plsr.Vehicles.Keys:Has(vehEnt.VIN, vehEnt.GroupKeys)
 						end,
 						action = function()
-							if exports['pulsar-vehicles']:KeysHas(vehEnt.state.VIN, vehEnt.state.GroupKeys) then
-								if IsPedInAnyVehicle(LocalPlayer.state.ped, true) then
+							if plsr.Vehicles.Keys:Has(vehEnt.VIN, vehEnt.GroupKeys) then
+								if IsPedInAnyVehicle(PlayerPedId(), true) then
 									local sids = {}
 									for i = -1, GetVehicleModelNumberOfSeats(VEHICLE_INSIDE), 1 do
 										local ped = GetPedInVehicleSeat(VEHICLE_INSIDE, i)
-										if ped ~= 0 and ped ~= LocalPlayer.state.ped then
+										if ped ~= 0 and ped ~= PlayerPedId() then
 											table.insert(sids, GetPlayerServerId(NetworkGetPlayerIndexFromPed(ped)))
 										end
 									end
-									exports["pulsar-core"]:ServerCallback("Vehicles:GiveKeys", {
+									plsr.Callbacks:ServerCallback("Vehicles:GiveKeys", {
 										netId = VehToNet(VEHICLE_INSIDE),
 										sids = sids,
 									})
 								end
 							end
 
-							exports['pulsar-hud']:InteractionHide()
+							plsr.Interaction:Hide()
 						end,
 					},
 					{
@@ -78,26 +77,26 @@ AddEventHandler('onClientResourceStart', function(resource)
 							return false
 						end,
 						action = function()
-							local seats = {}
+							local fuckingSeats = {}
 							local seatAmount = GetVehicleModelNumberOfSeats(GetEntityModel(VEHICLE_INSIDE))
 							for i = 1, seatAmount do
-								local actualSeatNumber = i - 2
-								if GetPedInVehicleSeat(VEHICLE_INSIDE, actualSeatNumber) == 0 then
-									table.insert(seats, {
+								local actualFuckingSeatNumber = i - 2
+								if GetPedInVehicleSeat(VEHICLE_INSIDE, actualFuckingSeatNumber) == 0 then
+									table.insert(fuckingSeats, {
 										icon = "chair",
-										label = actualSeatNumber == -1 and "Driver's Seat" or "Seat #" .. i,
+										label = actualFuckingSeatNumber == -1 and "Driver's Seat" or "Seat #" .. i,
 										action = function()
-											TriggerEvent("Vehicles:Client:Actions:SwitchSeat", actualSeatNumber)
-											exports['pulsar-hud']:InteractionHide()
+											TriggerEvent("Vehicles:Client:Actions:SwitchSeat", actualFuckingSeatNumber)
+											plsr.Interaction:Hide()
 										end,
 									})
 								end
 							end
 
-							if #seats > 0 then
-								exports['pulsar-hud']:InteractionShowMenu(seats)
+							if #fuckingSeats > 0 then
+								plsr.Interaction:ShowMenu(fuckingSeats)
 							else
-								exports["pulsar-hud"]:Notification("error", "No Seats Free")
+								plsr.Notification:Error("No Seats Free")
 							end
 						end,
 					},
@@ -113,10 +112,10 @@ AddEventHandler('onClientResourceStart', function(resource)
 							return false
 						end,
 						action = function()
-							local doors = {}
+							local fuckingDoors = {}
 							for doorId, doorName in pairs(vehicleDoorNames) do
 								if GetIsDoorValid(VEHICLE_INSIDE, doorId) then
-									table.insert(doors, {
+									table.insert(fuckingDoors, {
 										icon = "car-side",
 										label = doorName,
 										action = function()
@@ -126,7 +125,7 @@ AddEventHandler('onClientResourceStart', function(resource)
 								end
 							end
 
-							exports['pulsar-hud']:InteractionShowMenu(doors)
+							plsr.Interaction:ShowMenu(fuckingDoors)
 						end,
 					},
 					{
@@ -164,7 +163,7 @@ AddEventHandler('onClientResourceStart', function(resource)
 						end,
 					},
 					{
-						icon = "fa-window-maximize",
+						icon = "person-through-window",
 						label = "Windows",
 						shouldShow = function()
 							if VEHICLE_INSIDE then
@@ -175,40 +174,40 @@ AddEventHandler('onClientResourceStart', function(resource)
 							return false
 						end,
 						action = function()
-							local doors = {}
-							table.insert(doors, {
-								icon = "window-maximize",
+							local fuckingDoors = {}
+							table.insert(fuckingDoors, {
+								icon = "person-through-window",
 								label = "Driver Window",
 								action = function()
 									TriggerEvent("Vehicles:Client:Actions:ToggleWindow", 0)
 								end,
 							})
 
-							table.insert(doors, {
-								icon = "window-maximize",
+							table.insert(fuckingDoors, {
+								icon = "person-through-window",
 								label = "Passenger Window",
 								action = function()
 									TriggerEvent("Vehicles:Client:Actions:ToggleWindow", 1)
 								end,
 							})
 
-							table.insert(doors, {
-								icon = "window-maximize",
+							table.insert(fuckingDoors, {
+								icon = "person-through-window",
 								label = "Close All",
 								action = function()
 									TriggerEvent("Vehicles:Client:Actions:ToggleWindow", "shut")
 								end,
 							})
 
-							table.insert(doors, {
-								icon = "window-maximize",
+							table.insert(fuckingDoors, {
+								icon = "person-through-window",
 								label = "Open All",
 								action = function()
 									TriggerEvent("Vehicles:Client:Actions:ToggleWindow", "open")
 								end,
 							})
 
-							exports['pulsar-hud']:InteractionShowMenu(doors)
+							plsr.Interaction:ShowMenu(fuckingDoors)
 						end,
 					},
 					{
@@ -216,28 +215,25 @@ AddEventHandler('onClientResourceStart', function(resource)
 						label = "Check Mileage",
 						action = function()
 							if VEHICLE_INSIDE then
-								local vehEnt = Entity(VEHICLE_INSIDE)
-								if vehEnt and vehEnt.state and vehEnt.state.Mileage then
-									exports["pulsar-hud"]:Notification("info",
-										"This Vehicle Has " .. vehEnt.state.Mileage .. " Miles on the Odometer",
+								local vehEnt = plsr.State.Entity(VEHICLE_INSIDE)
+								if vehEnt and vehEnt.Mileage then
+									plsr.Notification:Info(
+										"This Vehicle Has " .. vehEnt.Mileage .. " Miles on the Odometer",
 										10000
 									)
 								end
 
-								exports['pulsar-hud']:InteractionHide()
+								plsr.Interaction:Hide()
 							end
 						end,
 					},
 					{
-						icon = "fire",
+						icon = "gauge-simple",
 						label = "Check Nitrous Levels",
 						shouldShow = function()
 							if VEHICLE_INSIDE then
-								if exports['pulsar-police']:IsPdCar(VEHICLE_INSIDE) or exports['pulsar-police']:IsEMSCar(VEHICLE_INSIDE) then
-									return false
-								end
-								local vehEnt = Entity(VEHICLE_INSIDE)
-								if vehEnt and vehEnt.state and vehEnt.state.Nitrous then
+								local vehEnt = plsr.State.Entity(VEHICLE_INSIDE)
+								if vehEnt and vehEnt.Nitrous then
 									return true
 								end
 							end
@@ -245,28 +241,25 @@ AddEventHandler('onClientResourceStart', function(resource)
 						end,
 						action = function()
 							if VEHICLE_INSIDE then
-								local vehEnt = Entity(VEHICLE_INSIDE)
-								if vehEnt and vehEnt.state and vehEnt.state.Nitrous then
-									exports["pulsar-hud"]:Notification("standard",
-										"Nitrous Remaining: " ..
-										exports['pulsar-core']:UtilsRound(vehEnt.state.Nitrous, 2) .. "%",
+								local vehEnt = plsr.State.Entity(VEHICLE_INSIDE)
+								if vehEnt and vehEnt.Nitrous then
+									plsr.Notification:Standard(
+										"Nitrous Remaining: " .. plsr.Utils:Round(vehEnt.Nitrous, 2) .. "%",
 										10000
 									)
 								end
-								exports['pulsar-hud']:InteractionHide()
+
+								plsr.Interaction:Hide()
 							end
 						end,
 					},
 					{
-						icon = "rocket",
+						icon = "trash-can",
 						label = "Remove Nitrous",
 						shouldShow = function()
-							if VEHICLE_INSIDE and GetPedInVehicleSeat(VEHICLE_INSIDE, -1) == LocalPlayer.state.ped then
-								if exports['pulsar-police']:IsPdCar(VEHICLE_INSIDE) or exports['pulsar-police']:IsEMSCar(VEHICLE_INSIDE) then
-									return false
-								end
-								local vehEnt = Entity(VEHICLE_INSIDE)
-								if vehEnt and vehEnt.state and vehEnt.state.Nitrous then
+							if VEHICLE_INSIDE and GetPedInVehicleSeat(VEHICLE_INSIDE, -1) == PlayerPedId() then
+								local vehEnt = plsr.State.Entity(VEHICLE_INSIDE)
+								if vehEnt and vehEnt.Nitrous then
 									return true
 								end
 							end
@@ -274,8 +267,8 @@ AddEventHandler('onClientResourceStart', function(resource)
 						end,
 						action = function()
 							if VEHICLE_INSIDE then
-								local vehEnt = Entity(VEHICLE_INSIDE)
-								if vehEnt and vehEnt.state and vehEnt.state.Nitrous then
+								local vehEnt = plsr.State.Entity(VEHICLE_INSIDE)
+								if vehEnt and vehEnt.Nitrous then
 									TriggerEvent("Vehicles:Client:RemoveNitrous")
 								end
 							end
@@ -285,33 +278,33 @@ AddEventHandler('onClientResourceStart', function(resource)
 					-- 	icon = "print-magnifying-glass",
 					-- 	label = "Inspect VIN",
 					-- 	shouldShow = function()
-					-- 		return (LocalPlayer.state.onDuty ~= "police" and exports['pulsar-vehicles']:HasAccess(VEHICLE_INSIDE))
-					-- 			or (LocalPlayer.state.onDuty == "police" and LocalPlayer.state.inPdStation)
+					-- 		return (plsr.State.flags.onDuty ~= "police" and Vehicles:HasAccess(VEHICLE_INSIDE))
+					-- 			or (plsr.State.flags.onDuty == "police" and LocalPlayer.state.inPdStation)
 					-- 	end,
 					-- 	action = function()
 					-- 		if
 					-- 			VEHICLE_INSIDE
 					-- 			and (
-					-- 				(LocalPlayer.state.onDuty ~= "police" and exports['pulsar-vehicles']:HasAccess(VEHICLE_INSIDE))
-					-- 				or (LocalPlayer.state.onDuty == "police" and LocalPlayer.state.inPdStation)
+					-- 				(plsr.State.flags.onDuty ~= "police" and Vehicles:HasAccess(VEHICLE_INSIDE))
+					-- 				or (plsr.State.flags.onDuty == "police" and LocalPlayer.state.inPdStation)
 					-- 			)
 					-- 		then
-					--             exports['pulsar-hud']:ListMenuClose()
+					--             ListMenu:Close()
 					-- 			TriggerServerEvent("Vehicle:Server:InspectVIN", VehToNet(VEHICLE_INSIDE))
 					-- 		end
 					-- 	end,
 					-- },
 					{
-						icon = "lightbulb-on",
+						icon = "lightbulb",
 						label = "Neons",
 						shouldShow = function()
-							if VEHICLE_INSIDE and exports['pulsar-vehicles']:SyncNeonsHas() and not exports['pulsar-police']:IsPdCar(VEHICLE_INSIDE) then
+							if VEHICLE_INSIDE and plsr.Vehicles.Sync.Neons:Has() and not plsr.Police:IsPdCar(VEHICLE_INSIDE) then
 								return true
 							end
 						end,
 						action = function()
 							if VEHICLE_INSIDE then
-								exports['pulsar-vehicles']:SyncNeonsToggle()
+								plsr.Vehicles.Sync.Neons:Toggle()
 							end
 						end,
 					},
@@ -323,29 +316,29 @@ AddEventHandler('onClientResourceStart', function(resource)
 			end
 			return false
 		end)
-	end
 end)
 
 AddEventHandler("Vehicles:Client:GiveKeys", function(entityData, data)
-	local vehEnt = Entity(entityData.entity)
+	local vehEnt = plsr.State.Entity(entityData.entity)
 
-	if exports['pulsar-vehicles']:KeysHas(vehEnt.state.VIN, vehEnt.state.GroupKeys) then
-		local myCoords = GetEntityCoords(LocalPlayer.state.ped)
+	if plsr.Vehicles.Keys:Has(vehEnt.VIN, vehEnt.GroupKeys) then
+		local myCoords = GetEntityCoords(PlayerPedId())
 		local peds = GetGamePool("CPed")
 		local sids = {}
 		for _, ped in ipairs(peds) do
-			if ped ~= LocalPlayer.state.ped and IsPedAPlayer(ped) then
+			if ped ~= PlayerPedId() and IsPedAPlayer(ped) then
 				local entCoords = GetEntityCoords(ped)
 				if #(entCoords - myCoords) <= 4.0 then
 					table.insert(sids, GetPlayerServerId(NetworkGetPlayerIndexFromPed(ped)))
 				end
 			end
 		end
-		exports["pulsar-core"]:ServerCallback("Vehicles:GiveKeys", {
+		plsr.Callbacks:ServerCallback("Vehicles:GiveKeys", {
 			netId = VehToNet(entityData.entity),
 			sids = sids,
 		})
 	end
+	
 end)
 
 RegisterNetEvent("Characters:Client:Spawn")
@@ -369,7 +362,7 @@ AddEventHandler("Vehicles:Client:Actions:SwitchSeat", function(seatNum)
 	if GetPedInVehicleSeat(VEHICLE_INSIDE, seatNum) == 0 then
 		SetPedIntoVehicle(GLOBAL_PED, VEHICLE_INSIDE, seatNum)
 	else
-		exports["pulsar-hud"]:Notification("error", "Seat Occupied")
+		plsr.Notification:Error("Seat Occupied")
 	end
 end)
 
@@ -378,33 +371,30 @@ AddEventHandler("Vehicles:Client:Actions:ToggleDoor", function(doorNum)
 	local vehicle = VEHICLE_INSIDE
 
 	if not vehicle then
-		local playerCoords = GetEntityCoords(PlayerPedId())
-		local maxDistance = 2.0
-		local includePlayerVehicle = true
-
-		local targetVehicle = lib.getClosestVehicle(playerCoords, maxDistance, includePlayerVehicle)
+		local targetVehicle = plsr.Targeting:GetEntityPlayerIsLookingAt()
 		if
 			targetVehicle
-			and DoesEntityExist(targetVehicle)
-			and GetEntitySpeed(targetVehicle) <= 2.0
-			and GetPedInVehicleSeat(targetVehicle, -1) == 0
-			and GetVehicleDoorLockStatus(targetVehicle) == 1
+			and targetVehicle.entity
+			and DoesEntityExist(targetVehicle.entity)
+			and GetEntitySpeed(targetVehicle.entity) <= 2.0
+			and GetPedInVehicleSeat(targetVehicle.entity, -1) == 0
+			and GetVehicleDoorLockStatus(targetVehicle.entity) == 1
 		then
-			vehicle = targetVehicle
+			vehicle = targetVehicle.entity
 		else
 			return
 		end
 	end
 
 	if doorNum == "shut" or doorNum == "close" then
-		exports['pulsar-vehicles']:SyncDoorsShut(vehicle, "all", false)
+		plsr.Vehicles.Sync.Doors:Shut(vehicle, "all", false)
 	elseif doorNum == "open" then
-		exports['pulsar-vehicles']:SyncDoorsOpen(vehicle, "all", false, false)
+		plsr.Vehicles.Sync.Doors:Open(vehicle, "all", false, false)
 	else
 		if GetVehicleDoorAngleRatio(vehicle, doorNum) > 0.0 then
-			exports['pulsar-vehicles']:SyncDoorsShut(vehicle, doorNum, false)
+			plsr.Vehicles.Sync.Doors:Shut(vehicle, doorNum, false)
 		else
-			exports['pulsar-vehicles']:SyncDoorsOpen(vehicle, doorNum, false, false)
+			plsr.Vehicles.Sync.Doors:Open(vehicle, doorNum, false, false)
 		end
 	end
 end)
@@ -414,18 +404,15 @@ AddEventHandler("Vehicles:Client:Actions:ToggleWindow", function(winNum)
 	local vehicle = VEHICLE_INSIDE
 
 	if not vehicle then
-		local playerCoords = GetEntityCoords(PlayerPedId())
-		local maxDistance = 2.0
-		local includePlayerVehicle = true
-
-		local targetVehicle = lib.getClosestVehicle(playerCoords, maxDistance, includePlayerVehicle)
+		local targetVehicle = plsr.Targeting:GetEntityPlayerIsLookingAt()
 		if
 			targetVehicle
-			and DoesEntityExist(targetVehicle)
-			and GetEntitySpeed(targetVehicle) <= 2.0
-			and GetPedInVehicleSeat(targetVehicle, -1) == 0
+			and targetVehicle.entity
+			and DoesEntityExist(targetVehicle.entity)
+			and GetEntitySpeed(targetVehicle.entity) <= 2.0
+			and GetPedInVehicleSeat(targetVehicle.entity, -1) == 0
 		then
-			vehicle = targetVehicle
+			vehicle = targetVehicle.entity
 		else
 			return
 		end

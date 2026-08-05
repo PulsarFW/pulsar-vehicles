@@ -14,11 +14,11 @@ local function CleanupZone()
 end
 
 local function DeleteGhostLocal(ent)
-	local vState = Entity(ent).state
+	local vState = plsr.State.Entity(ent)
 	if vState.Owned then
 		return
 	end
-	exports["pulsar-core"]:DeleteEntity(ent)
+	plsr.NetSync:DeleteEntity(ent)
 end
 
 local function DoTheThing(veh)

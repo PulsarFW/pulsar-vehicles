@@ -1,7 +1,5 @@
 LAST_VEH_POS = vector3(0, 0, 0)
 
-local lastReplicated = GetGameTimer()
-
 AddEventHandler('Vehicles:Client:StartUp', function()
     AddTaskBeforeVehicleThread('mileage', function(veh, class)
         LAST_VEH_POS = GetEntityCoords(THREAD_VEHICLE)
@@ -9,26 +7,16 @@ AddEventHandler('Vehicles:Client:StartUp', function()
 
     AddTaskToVehicleThread('mileage', 8, false, function(veh, class, engine, inside, onExit)
         if DoesEntityExist(veh) then
-            local vehEnt = Entity(veh)
-            local currentMileage = vehEnt.state.Mileage
+            local vehEnt = plsr.State.Entity(veh)
+            local currentMileage = vehEnt.Mileage
             if type(currentMileage) ~= 'number' then currentMileage = 0 end
 
             local vehCoords = GetEntityCoords(DAMAGE_VEHICLE)
             local distCovered = #(vehCoords - LAST_VEH_POS)
             if distCovered >= 0.5 then -- Otherwise the vehicle isn't actually moving cunt
                 local distCoveredMiles = distCovered / 1609
-                local newMileage = exports['pulsar-core']:UtilsRound(currentMileage + distCoveredMiles, 2)
-
-                if (GetGameTimer() - lastReplicated) > 60000 then
-                    lastReplicated = GetGameTimer()
-                    vehEnt.state:set('Mileage', newMileage, true)
-                else
-                    vehEnt.state:set('Mileage', newMileage, false)
-                end
-            end
-
-            if onExit then
-                vehEnt.state:set('Mileage', vehEnt.state.Mileage, true)
+                local newMileage = plsr.Utils:Round(currentMileage + distCoveredMiles, 2)
+                vehEnt.Mileage = newMileage
             end
 
             LAST_VEH_POS = vehCoords

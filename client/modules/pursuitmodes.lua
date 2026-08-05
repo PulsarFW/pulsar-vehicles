@@ -5,39 +5,39 @@ _inPursuitVehicleMegaphone = false
 
 AddEventHandler("Characters:Client:Spawn", function()
     Wait(500)
-    exports['pulsar-hud']:RegisterBuff("pursuit-modes", "gauge-high", "#892020", -1, "permanent")
+    plsr.Buffs:RegisterBuff("pursuit-modes", "gauge", "#892020", -1, "permanent")
 end)
 
 local _timeout = false
 
 AddEventHandler('Vehicles:Client:StartUp', function()
-    exports['pulsar-hud']:InteractionRegisterMenu("vehicle-megaphone", false, "bullhorn", function(data)
-        exports['pulsar-hud']:InteractionHide()
-        _inPursuitVehicleMegaphone = not _inPursuitVehicleMegaphone
-        Entity(_inPursuitVehicle).state:set('VehicleMegaphone', _inPursuitVehicleMegaphone, true)
-        exports["pulsar-core"]:ServerCallback("Vehicles:Server:VehicleMegaphone", {}, function(data, cb)
-        end)
-    end, function()
+
+	plsr.Interaction:RegisterMenu("vehicle-megaphone", false, "megaphone", function(data)
+		plsr.Interaction:Hide()
+		_inPursuitVehicleMegaphone = not _inPursuitVehicleMegaphone
+		plsr.State.Entity(_inPursuitVehicle).VehicleMegaphone = _inPursuitVehicleMegaphone
+		plsr.Callbacks:ServerCallback("Vehicles:Server:VehicleMegaphone", {}, function(data, cb)
+		end)
+	end, function()
         return _inPursuitVehicle
     end)
 
-    exports['pulsar-hud']:InteractionRegisterMenu("pursuit-modes", false, "car-on", function(data)
+    plsr.Interaction:RegisterMenu("pursuit-modes", false, "car-on", function(data)
         if _inPursuitVehicleSettings then
             local menu = {}
-            for k, v in pairs(_inPursuitVehicleSettings) do
+            for k,v in pairs(_inPursuitVehicleSettings) do
                 table.insert(menu, {
                     icon = "gauge-high",
                     label = string.format("%s Class", v.name),
                     action = function()
-                        exports['pulsar-hud']:InteractionHide()
-
+                        plsr.Interaction:Hide()
+                        
                         _inPursuitVehicleMode = k
-                        exports['pulsar-sounds']:UISoundsPlayFrontEnd(-1, "Business_Restart",
-                            "DLC_Biker_Computer_Sounds")
-                        exports["pulsar-hud"]:Notification("standard", "Switched to Pursuit Mode " .. v.name)
+                        plsr.UISounds.Play:FrontEnd(-1, "Business_Restart", "DLC_Biker_Computer_Sounds")
+                        plsr.Notification:Standard("Switched to Pursuit Mode " .. v.name)
                         ApplyPursuitStuffToVehicle(_inPursuitVehicleMode)
 
-                        Entity(_inPursuitVehicle).state:set('PursuitMode', _inPursuitVehicleMode, true)
+                        plsr.State.Entity(_inPursuitVehicle).PursuitMode = _inPursuitVehicleMode
 
                         --TriggerServerEvent("EmergencyAlerts:Server:PursuitModeChange", v.name or _inPursuitVehicleMode)
                         TriggerEvent("EmergencyAlerts:Client:PursuitModeChange", v.name or _inPursuitVehicleMode)
@@ -45,17 +45,17 @@ AddEventHandler('Vehicles:Client:StartUp', function()
                 })
             end
 
-            exports['pulsar-hud']:InteractionShowMenu(menu)
+            plsr.Interaction:ShowMenu(menu)
         end
     end, function()
         return _inPursuitVehicleSettings
     end)
 
-    exports["pulsar-kbs"]:Add('vehicle_pursuit_modes', '', 'keyboard', 'Vehicle - Pursuit Modes', function()
-        if _inPursuitVehicle and _timeout then
-            exports["pulsar-hud"]:Notification("error", "Cannot switch modes that quickly.")
-            return
-        end
+    plsr.Keybinds:Add('vehicle_pursuit_modes', '', 'keyboard', 'Vehicle - Pursuit Modes', function()
+		if _inPursuitVehicle and _timeout then
+			plsr.Notification:Error("Cannot switch modes that quickly.")
+			return
+		end
         if _inPursuitVehicle and not _timeout then
             if (_inPursuitVehicleMode + 1) <= #_inPursuitVehicleSettings then
                 _inPursuitVehicleMode += 1
@@ -63,17 +63,14 @@ AddEventHandler('Vehicles:Client:StartUp', function()
                 _inPursuitVehicleMode = 1
             end
 
-            exports['pulsar-sounds']:UISoundsPlayFrontEnd(-1, "Business_Restart", "DLC_Biker_Computer_Sounds")
-            exports["pulsar-hud"]:Notification("standard", "Switched to Pursuit Mode " ..
-                _inPursuitVehicleSettings[_inPursuitVehicleMode].name or
-                _inPursuitVehicleMode)
+            plsr.UISounds.Play:FrontEnd(-1, "Business_Restart", "DLC_Biker_Computer_Sounds")
+            plsr.Notification:Standard("Switched to Pursuit Mode " .. _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
             ApplyPursuitStuffToVehicle(_inPursuitVehicleMode)
 
-            Entity(_inPursuitVehicle).state:set('PursuitMode', _inPursuitVehicleMode, true)
+            plsr.State.Entity(_inPursuitVehicle).PursuitMode = _inPursuitVehicleMode
 
             --TriggerServerEvent("EmergencyAlerts:Server:PursuitModeChange", _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
-            TriggerEvent("EmergencyAlerts:Client:PursuitModeChange",
-                _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
+            TriggerEvent("EmergencyAlerts:Client:PursuitModeChange", _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
 
             _timeout = true
             Citizen.SetTimeout(2000, function()
@@ -89,19 +86,17 @@ AddEventHandler('Vehicles:Client:StartUp', function()
             _inPursuitVehicleMode = 1
             _inPursuitVehicleSettings = pVeh
 
-            local lastPursuitMode = Entity(veh)?.state?.PursuitMode
+            local lastPursuitMode = plsr.State.Entity(veh).PursuitMode
             if lastPursuitMode ~= nil and lastPursuitMode <= #_inPursuitVehicleSettings then
                 _inPursuitVehicleMode = lastPursuitMode
 
-                exports['pulsar-sounds']:UISoundsPlayFrontEnd(-1, "Business_Restart", "DLC_Biker_Computer_Sounds")
-                exports["pulsar-hud"]:Notification("standard", "Switched to Pursuit Mode " ..
-                    _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
+                plsr.UISounds.Play:FrontEnd(-1, "Business_Restart", "DLC_Biker_Computer_Sounds")
+                plsr.Notification:Standard("Switched to Pursuit Mode " .. _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
 
                 ApplyPursuitStuffToVehicle(lastPursuitMode)
 
                 --TriggerServerEvent("EmergencyAlerts:Server:PursuitModeChange", _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
-                TriggerEvent("EmergencyAlerts:Client:PursuitModeChange",
-                    _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
+                TriggerEvent("EmergencyAlerts:Client:PursuitModeChange", _inPursuitVehicleSettings[_inPursuitVehicleMode].name or _inPursuitVehicleMode)
             else
                 -- Apply Lowest Pursuit Mode
                 print("Applying Lowest Pursuit Mode")
@@ -113,12 +108,12 @@ AddEventHandler('Vehicles:Client:StartUp', function()
     AddTaskToVehicleThread('pursuit-modes', 100, true, function(veh, class, running, inside, onExit)
         if _inPursuitVehicle then
             if onExit then
-                _inPursuitVehicleMegaphone = false
-                local lastVehicleMegaphone = Entity(veh)?.state?.VehicleMegaphone
-                if lastVehicleMegaphone == true then
-                    exports["pulsar-core"]:ServerCallback("Vehicles:Server:VehicleMegaphone", function(data, cb)
-                    end)
-                end
+				_inPursuitVehicleMegaphone = false
+				local lastVehicleMegaphone = plsr.State.Entity(veh).VehicleMegaphone
+				if lastVehicleMegaphone == true then
+					plsr.Callbacks:ServerCallback("Vehicles:Server:VehicleMegaphone", function(data, cb)
+					end)
+				end
 
                 _inPursuitVehicle = false
                 _inPursuitVehicleMode = 1
@@ -135,6 +130,7 @@ end)
 
 function ApplyPursuitStuffToVehicle(mode)
     if mode <= #_inPursuitVehicleSettings then
+
         local modeSettings = _inPursuitVehicleSettings[mode]
 
         ResetVehicleHandlingOverrides(_inPursuitVehicle)
@@ -168,21 +164,21 @@ function ApplyPursuitStuffToVehicle(mode)
             SetVehicleLights(_inPursuitVehicle, 2)
             ToggleVehicleMod(_inPursuitVehicle, 22, true)
 
-            -- mode 1 = D
-            -- mode 2 = C
-            -- mode 3 = B
-            -- mode 4 = A
-            -- mode 5 = S
+			-- mode 1 = D
+			-- mode 2 = C
+			-- mode 3 = B
+			-- mode 4 = A
+			-- mode 5 = S
 
             if mode == 2 then
-                SetVehicleDashboardColour(_inPursuitVehicle, 4)
-            elseif mode == 3 then
-                SetVehicleDashboardColour(_inPursuitVehicle, 99)
-            elseif mode == 4 then
-                SetVehicleDashboardColour(_inPursuitVehicle, 83)
-            elseif mode == 5 then
-                SetVehicleDashboardColour(_inPursuitVehicle, 27)
-            end
+				SetVehicleDashboardColour(_inPursuitVehicle, 4)
+			elseif mode == 3 then
+				SetVehicleDashboardColour(_inPursuitVehicle, 99)
+			elseif mode == 4 then
+				SetVehicleDashboardColour(_inPursuitVehicle, 83)
+			elseif mode == 5 then
+				SetVehicleDashboardColour(_inPursuitVehicle, 27)
+			end
 
             if mode >= 4 then
                 SetVehicleXenonLightsColor(_inPursuitVehicle, 0)
@@ -192,16 +188,16 @@ function ApplyPursuitStuffToVehicle(mode)
         else
             SetVehicleLights(_inPursuitVehicle, 0)
             ToggleVehicleMod(_inPursuitVehicle, 22, false)
-            SetVehicleDashboardColour(_inPursuitVehicle, 0)
+			SetVehicleDashboardColour(_inPursuitVehicle, 0)
         end
 
         -- if _inPursuitVehicleSettings[_inPursuitVehicleMode] and _inPursuitVehicleSettings[_inPursuitVehicleMode].name then
         --     local name = _inPursuitVehicleSettings[_inPursuitVehicleMode].name
 
         --     SetVehsicleNeonLightEnabled(_inPursuitVehicle, 0, true)
-        -- 	SetVehicleNeonLightEnabled(_inPursuitVehicle, 1, true)
-        -- 	SetVehicleNeonLightEnabled(_inPursuitVehicle, 2, true)
-        -- 	SetVehicleNeonLightEnabled(_inPursuitVehicle, 3, true)
+		-- 	SetVehicleNeonLightEnabled(_inPursuitVehicle, 1, true)
+		-- 	SetVehicleNeonLightEnabled(_inPursuitVehicle, 2, true)
+		-- 	SetVehicleNeonLightEnabled(_inPursuitVehicle, 3, true)
 
         --     if name == "D" then
         --         SetVehicleNeonLightsColour(_inPursuitVehicle, 235, 113, 218)
@@ -220,11 +216,10 @@ function ApplyPursuitStuffToVehicle(mode)
             local percentage = (100 / (#_inPursuitVehicleSettings - 1)) * (mode - 1)
 
             print(_inPursuitVehicleSettings[_inPursuitVehicleMode].name)
-            exports['pulsar-hud']:ApplyBuff("pursuit-modes", -1,
-                _inPursuitVehicleSettings[_inPursuitVehicleMode].name)
+            plsr.Buffs:ApplyUniqueBuff("pursuit-modes", -1, _inPursuitVehicleSettings[_inPursuitVehicleMode].name)
             --TriggerEvent("Status:Client:Update", "pursuit-modes", percentage)
         else
-            exports['pulsar-hud']:RemoveBuff("pursuit-modes")
+            plsr.Buffs:RemoveBuffType("pursuit-modes")
             --TriggerEvent("Status:Client:Update", "pursuit-modes", 0)
         end
     end
@@ -243,6 +238,6 @@ function RemovePursuitStuffFromVehicle(veh)
     SetVehicleLights(veh, 0)
     ToggleVehicleMod(veh, 22, false)
 
-    exports['pulsar-hud']:RemoveBuff("pursuit-modes")
+    plsr.Buffs:RemoveBuffType("pursuit-modes")
     --TriggerEvent("Status:Client:Update", "pursuit-modes", 0)
 end

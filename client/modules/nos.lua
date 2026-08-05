@@ -35,7 +35,7 @@ local _NOSStart = 0
 local _NOSUsage = 0
 
 AddEventHandler("Vehicles:Client:StartUp", function()
-	exports["pulsar-kbs"]:Add("vehicle_nos", "", "keyboard", "NOS", function()
+	plsr.Keybinds:Add("vehicle_nos", "", "keyboard", "NOS", function()
 		if VEHICLE_INSIDE and _hasNOS then
 			StartVehicleNOS()
 		end
@@ -45,7 +45,7 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 		end
 	end)
 
-	exports["pulsar-kbs"]:Add("vehicle_nos_purge", "", "keyboard", "NOS - Purge", function()
+	plsr.Keybinds:Add("vehicle_nos_purge", "", "keyboard", "NOS - Purge", function()
 		if VEHICLE_INSIDE and _hasNOS then
 			StartVehiclePurge()
 		end
@@ -55,39 +55,39 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 		end
 	end)
 
-	exports["pulsar-kbs"]:Add("vehicle_nos_flow_up", "", "keyboard", "NOS - Increase Flow Rate", function()
+	plsr.Keybinds:Add("vehicle_nos_flow_up", "", "keyboard", "NOS - Increase Flow Rate", function()
 		if VEHICLE_INSIDE and _hasNOS then
 			if _flowRate < 10 then
 				_flowRate = _flowRate + 1
-				exports["pulsar-hud"]:Notification("standard", "Changed Flow Rate to " .. _flowRate)
+				plsr.Notification:Standard("Changed Flow Rate to " .. _flowRate)
 			end
 		end
 	end)
 
-	exports["pulsar-kbs"]:Add("vehicle_nos_flow_down", "", "keyboard", "NOS - Decrease Flow Rate", function()
+	plsr.Keybinds:Add("vehicle_nos_flow_down", "", "keyboard", "NOS - Decrease Flow Rate", function()
 		if VEHICLE_INSIDE and _hasNOS then
 			if _flowRate > 1 then
 				_flowRate = _flowRate - 1
-				exports["pulsar-hud"]:Notification("standard", "Changed Flow Rate to " .. _flowRate)
+				plsr.Notification:Standard("Changed Flow Rate to " .. _flowRate)
 			end
 		end
 	end)
 
-	exports["pulsar-core"]:RegisterClientCallback("Vehicles:InstallNitrous", function(data, cb)
+	plsr.Callbacks:RegisterClientCallback("Vehicles:InstallNitrous", function(data, cb)
 		if
 			VEHICLE_INSIDE
 			and DoesEntityExist(VEHICLE_INSIDE)
 			and IsEntityAVehicle(VEHICLE_INSIDE)
-			and (GetPedInVehicleSeat(VEHICLE_INSIDE, -1) == LocalPlayer.state.ped or LocalPlayer.state.isDev)
+			and (GetPedInVehicleSeat(VEHICLE_INSIDE, -1) == PlayerPedId() or plsr.State.flags.isDev)
 		then
 			if not IsToggleModOn(VEHICLE_INSIDE, 18) then
-				exports["pulsar-hud"]:Notification("error", "Need a Turbo For This Mate")
+				plsr.Notification:Error("Need a Turbo For This Mate")
 				cb(false)
 				return
 			end
 
-			if exports['pulsar-police']:IsPdCar(VEHICLE_INSIDE) then
-				exports["pulsar-hud"]:Notification("error", "How About No")
+			if plsr.Police:IsPdCar(VEHICLE_INSIDE) then
+				plsr.Notification:Error("How About No")
 				cb(false)
 				return
 			end
@@ -105,7 +105,7 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 				return
 			end
 
-			exports['pulsar-hud']:Progress({
+			plsr.Progress:Progress({
 				name = "vehicle_installing_nitrous",
 				duration = 15000,
 				label = "Installing Nitrous Oxide",
@@ -147,7 +147,7 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 				EndVehicleNOS()
 				EndVehiclePurge()
 
-				exports['pulsar-hud']:NOS(0)
+				plsr.Hud:NOS(0)
 			end
 		end
 	end, true)
@@ -156,13 +156,13 @@ end)
 function DoInitNOSCheck(veh)
 	_hasNOS = false
 
-	if GetPedInVehicleSeat(veh, -1) == LocalPlayer.state.ped then
-		local vehEnt = Entity(veh)
+	if GetPedInVehicleSeat(veh, -1) == PlayerPedId() then
+		local vehEnt = plsr.State.Entity(veh)
 
-		if vehEnt and vehEnt.state and vehEnt.state.VIN and vehEnt.state.Nitrous then
-			_hasNOS = vehEnt.state.Nitrous
+		if vehEnt and vehEnt.VIN and vehEnt.Nitrous then
+			_hasNOS = vehEnt.Nitrous
 
-			exports['pulsar-hud']:NOS(math.ceil(_hasNOS))
+			plsr.Hud:NOS(math.ceil(_hasNOS))
 		end
 	end
 end
@@ -177,13 +177,13 @@ function StartVehicleNOS()
 		and not IsVehicleStopped(VEHICLE_INSIDE)
 	then
 		if _hasNOS <= 0.0 then
-			exports['pulsar-sounds']:UISoundsPlayFrontEnd(-1, "TIMER_STOP", "HUD_MINI_GAME_SOUNDSET")
-			exports["pulsar-hud"]:Notification("standard", "No More Nitrous Left!")
+			plsr.UISounds.Play:FrontEnd(-1, "TIMER_STOP", "HUD_MINI_GAME_SOUNDSET")
+			plsr.Notification:Standard("No More Nitrous Left!")
 			return
 		end
 
 		if not IsVehicleEngineOn(VEHICLE_INSIDE) then
-			exports["pulsar-hud"]:Notification("standard", "Turning the Engine On Would Help...")
+			plsr.Notification:Standard("Turning the Engine On Would Help...")
 			return
 		end
 
@@ -224,11 +224,11 @@ function StartVehicleNOS()
 					--print(_NOSUsage)
 
 					if (GetGameTimer() - _NOSStart) >= 4000 then
-						exports['pulsar-sounds']:UISoundsPlayFrontEnd(-1, "TIMER_STOP", "HUD_MINI_GAME_SOUNDSET")
+						plsr.UISounds.Play:FrontEnd(-1, "TIMER_STOP", "HUD_MINI_GAME_SOUNDSET")
 						SetVehicleEngineHealth(_veh, 0.0)
 						SetVehicleCanLeakPetrol(_veh, false)
 
-						exports['pulsar-vehicles']:EngineForce(_veh, false)
+						plsr.Vehicles.Engine:Force(_veh, false)
 
 						EndVehicleNOS()
 						break
@@ -255,7 +255,7 @@ function EndVehicleNOS()
 		_hasNOS -= _NOSUsage
 		_NOSUsage = 0.0
 
-		exports['pulsar-hud']:NOS(math.ceil(_hasNOS))
+		plsr.Hud:NOS(math.ceil(_hasNOS))
 
 		TriggerServerEvent("Vehicles:Server:SyncNitroEffect", _vehNet, false)
 
@@ -360,7 +360,7 @@ end)
 
 function CreateVehiclePurgeSpray(vehicle, xOffset, yOffset, zOffset, xRot, yRot, zRot, scale)
 	UseParticleFxAssetNextCall("core")
-	local vehEnt = Entity(vehicle)
+	local vehEnt = plsr.State.Entity(vehicle)
 	local PurgeSpray = StartParticleFxLoopedOnEntity(
 		"ent_sht_steam",
 		vehicle,
@@ -375,32 +375,31 @@ function CreateVehiclePurgeSpray(vehicle, xOffset, yOffset, zOffset, xRot, yRot,
 		false,
 		false
 	)
-	local r = (vehEnt and vehEnt?.state?.PurgeColor?.r or 255) / 255
-	local g = (vehEnt and vehEnt?.state?.PurgeColor?.g or 255) / 255
-	local b = (vehEnt and vehEnt?.state?.PurgeColor?.b or 255) / 255
+	local r = (vehEnt and vehEnt?.PurgeColor?.r or 255) / 255
+	local g = (vehEnt and vehEnt?.PurgeColor?.g or 255) / 255
+	local b = (vehEnt and vehEnt?.PurgeColor?.b or 255) / 255
 	SetParticleFxLoopedColour(PurgeSpray, r, g, b, false)
 	return PurgeSpray
 end
 
 function CreateVehiclePurgeEffects(vehNet, vehicle)
-	local vehEnt = Entity(vehicle)
+	local vehEnt = plsr.State.Entity(vehicle)
 	if purgeFx[vehNet] then
 		ClearVehiclePurgeEffects(vehNet)
 	end
 
 	purgeFx[vehNet] = {}
 
-	local bone = GetEntityBoneIndexByName(vehicle, (vehEnt and vehEnt?.state?.PurgeLocation) or "wheel_rf")
+	local bone = GetEntityBoneIndexByName(vehicle, (vehEnt and vehEnt?.PurgeLocation) or "wheel_rf")
 	local pos = GetWorldPositionOfEntityBone(vehicle, bone)
 	local off = GetOffsetFromEntityGivenWorldCoords(vehicle, pos.x, pos.y, pos.z)
 
 	for i = 0, 3 do
 		local leftPurge, rightPurge
-		if vehEnt and vehEnt?.state?.PurgeLocation and vehEnt?.state?.PurgeLocation == "wheel_rf" or not vehEnt?.state?.PurgeLocation then
-			leftPurge = CreateVehiclePurgeSpray(vehicle, -2 * off.x + 0.8, off.y + 0.33, off.z + 0.15, 35.0, -40.0, 0.0,
-				0.6)
+		if vehEnt and vehEnt?.PurgeLocation and vehEnt?.PurgeLocation == "wheel_rf" or not vehEnt?.PurgeLocation then
+			leftPurge = CreateVehiclePurgeSpray(vehicle, -2 * off.x + 0.8, off.y + 0.33, off.z + 0.15, 35.0, -40.0, 0.0, 0.6)
 			rightPurge = CreateVehiclePurgeSpray(vehicle, off.x, off.y + 0.33, off.z + 0.15, 50.0, 35.0, 0.0, 0.6)
-		elseif vehEnt and vehEnt?.state?.PurgeLocation and vehEnt?.state?.PurgeLocation == "bonnet" then
+		elseif vehEnt and vehEnt?.PurgeLocation and vehEnt?.PurgeLocation == "bonnet" then
 			leftPurge = CreateVehiclePurgeSpray(vehicle, off.x - 0.5, off.y + 0.05, off.z, 40.0, -20.0, 0.0, 0.5)
 			rightPurge = CreateVehiclePurgeSpray(vehicle, off.x + 0.5, off.y + 0.05, off.z, 40.0, 20.0, 0.0, 0.5)
 		end
@@ -441,7 +440,7 @@ end
 
 AddEventHandler("Vehicles:Client:RemoveNitrous", function(entityData)
 	if VEHICLE_INSIDE and DoesEntityExist(VEHICLE_INSIDE) and _hasNOS then
-		exports['pulsar-hud']:Progress({
+		plsr.Progress:Progress({
 			name = "vehicle_removing_nitrous",
 			duration = 5000,
 			label = "Removing Nitrous Oxide",
@@ -460,25 +459,24 @@ AddEventHandler("Vehicles:Client:RemoveNitrous", function(entityData)
 		}, function(cancelled)
 			if
 				not cancelled
-				and exports['pulsar-vehicles']:HasAccess(VEHICLE_INSIDE, true)
-				and GetPedInVehicleSeat(VEHICLE_INSIDE, -1) == LocalPlayer.state.ped
+				and plsr.Vehicles:HasAccess(VEHICLE_INSIDE, true)
+				and GetPedInVehicleSeat(VEHICLE_INSIDE, -1) == PlayerPedId()
 			then
-				exports["pulsar-core"]:ServerCallback("Vehicles:RemoveNitrous", VehToNet(VEHICLE_INSIDE),
-					function(success)
-						if success then
-							--exports["pulsar-hud"]:Notification("success", 'Removed Nitrous Successfully')
+				plsr.Callbacks:ServerCallback("Vehicles:RemoveNitrous", VehToNet(VEHICLE_INSIDE), function(success)
+					if success then
+						--Notification:Success('Removed Nitrous Successfully')
 
-							_hasNOS = false
-							EndVehicleNOS()
-							EndVehiclePurge()
+						_hasNOS = false
+						EndVehicleNOS()
+						EndVehiclePurge()
 
-							exports['pulsar-hud']:NOS(0)
-						else
-							exports["pulsar-hud"]:Notification("error", "Could not Remove Nitrous")
-						end
-					end)
+						plsr.Hud:NOS(0)
+					else
+						plsr.Notification:Error("Could not Remove Nitrous")
+					end
+				end)
 			else
-				exports["pulsar-hud"]:Notification("error", "Could not Remove Nitrous")
+				plsr.Notification:Error("Could not Remove Nitrous")
 			end
 		end)
 	end

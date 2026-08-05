@@ -116,7 +116,6 @@ function GetVehicleProperties(vehicle, initSetup)
 				trimB = GetVehicleMod(vehicle, 44),
 				tank = GetVehicleMod(vehicle, 45),
 				windows = GetVehicleMod(vehicle, 46),
-				lightbar = GetVehicleMod(vehicle, 49),
 			},
 		}
 	else
@@ -133,7 +132,7 @@ end
 
 function SetVehicleProperties(vehicle, props, data)
 	if DoesEntityExist(vehicle) and type(props) == "table" then
-		if exports['pulsar-police']:IsPdCar(vehicle) then
+		if plsr.Police:IsPdCar(vehicle) then
 			props.chameleonColor = 0
 			props.pearlescentColor = 0
 			props.plateIndex = 4
@@ -143,14 +142,13 @@ function SetVehicleProperties(vehicle, props, data)
 			props.dashboardColor = 0
 		end
 
-		if exports['pulsar-police']:IsPdCar(vehicle) or exports['pulsar-police']:IsEMSCar(vehicle) and data?.callsign and (type(data.callsign) == "string" or type(data.callsign) == "number") then
+		if plsr.Police:IsPdCar(vehicle) or plsr.Police:IsEMSCar(vehicle) and data?.callsign and (type(data.callsign) == "string" or type(data.callsign) == "number") then
 			local callsignData = tostring(data?.callsign)
 			if callsignData and #callsignData == 3 then
 				local callsign = tonumber(callsignData)
 				if callsign ~= nil then
-					local one, two, three = getCallsignDigit(callsign, 3), getCallsignDigit(callsign, 2),
-						getCallsignDigit(callsign, 1)
-
+					local one, two, three = getCallsignDigit(callsign, 3), getCallsignDigit(callsign, 2), getCallsignDigit(callsign, 1)
+	
 					props.mods.fender = one
 					props.mods.rightFender = two
 					props.mods.roof = three
@@ -167,6 +165,10 @@ function SetVehicleProperties(vehicle, props, data)
 
 		if props.plateIndex then
 			SetVehicleNumberPlateTextIndex(vehicle, props.plateIndex)
+		end
+
+		if props.customPlate then
+			SetVehicleNumberPlateText(vehicle, props.customPlate)
 		end
 
 		if props.color1 then
@@ -392,20 +394,17 @@ function SetVehicleProperties(vehicle, props, data)
 			if props.mods.windows then
 				SetVehicleMod(vehicle, 46, props.mods.windows, false)
 			end
-			if props.mods.lightbar then
-				SetVehicleMod(vehicle, 49, props.mods.lightbar, false)
-			end
 		end
 
-		if Entity(vehicle) and Entity(vehicle).state.Plate then
-			SetVehicleNumberPlateText(vehicle, Entity(vehicle).state.Plate)
+		if plsr.State.Entity(vehicle).Plate then
+			SetVehicleNumberPlateText(vehicle, plsr.State.Entity(vehicle).Plate)
 		end
 
 		-- Hopefully stop ghost drivers stealing your car
 		local driverPed = GetPedInVehicleSeat(vehicle, -1)
 		if driverPed and driverPed > 0 and DoesEntityExist(driverPed) and not IsPedAPlayer(driverPed) then
 			print("Removing NPC Driver From Spawned Vehicle")
-			exports["pulsar-core"]:DeletePed(driverPed)
+			NetSync:DeletePed(driverPed)
 		end
 	end
 end

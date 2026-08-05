@@ -39,8 +39,8 @@ local WEAK_BRAKES = false
 
 function RunVehiclePartsDamage(veh, isRandom, damageAmount, destroyed)
     if DoesEntityExist(veh) then
-        local vehEnt = Entity(veh)
-        local currentDamage = vehEnt.state.DamagedParts
+        local vehEnt = plsr.State.Entity(veh)
+        local currentDamage = vehEnt.DamagedParts
         local vehSpeed = math.floor(GetEntitySpeed(veh) * 3.6)
         if type(currentDamage) ~= 'table' then
             currentDamage = GetDefaultDamagedParts()
@@ -51,7 +51,7 @@ function RunVehiclePartsDamage(veh, isRandom, damageAmount, destroyed)
             for k, v in pairs(randomPartDamageMults) do
                 local requiredSpeed = partDamageRequiredSpeed[k] or 0.0
                 if vehSpeed >= requiredSpeed then
-                    local newDamage = exports['pulsar-core']:UtilsRound((currentDamage[k] - (v * speedMult)), 3)
+                    local newDamage = plsr.Utils:Round((currentDamage[k] - (v * speedMult)), 3)
                     if newDamage <= 0.0 then
                         newDamage = 0.0
                     end
@@ -59,47 +59,44 @@ function RunVehiclePartsDamage(veh, isRandom, damageAmount, destroyed)
                 end
             end
 
-            exports['pulsar-core']:LoggerTrace('Vehicles',
-                'Running Regular Damage Degen - Data: ' .. json.encode(currentDamage, { indent = true }))
+            plsr.Logger:Trace('Vehicles', 'Running Regular Damage Degen - Data: ' .. json.encode(currentDamage, { indent = true }))
         else
             if damageAmount then
                 local damageMult = (100 + damageAmount) / 100
                 for k, v in pairs(damagePartDamageMults) do
-                    local newDamage = exports['pulsar-core']:UtilsRound((currentDamage[k] - (v * damageMult)), 3)
+                    local newDamage = plsr.Utils:Round((currentDamage[k] - (v * damageMult)), 3)
                     if newDamage <= 0.0 then
                         newDamage = 0.0
                     end
                     currentDamage[k] = newDamage
                 end
-                exports['pulsar-core']:LoggerTrace('Vehicles',
-                    'Running Collision Damage Degen - Data: ' .. json.encode(currentDamage))
+                plsr.Logger:Trace('Vehicles', 'Running Collision Damage Degen - Data: ' .. json.encode(currentDamage))
             elseif destroyed then
                 for k, v in pairs(onDestroyPartDamage) do
-                    local newDamage = exports['pulsar-core']:UtilsRound((currentDamage[k] - v), 3)
+                    local newDamage = plsr.Utils:Round((currentDamage[k] - v), 3)
                     if newDamage <= 0.0 then
                         newDamage = 0.0
                     end
                     currentDamage[k] = newDamage
 
-                    vehEnt.state:set('Damage', {
+                    vehEnt.Damage = {
                         Engine = -1000.0,
                         Body = 0.0,
-                    }, true)
+                    }
                 end
-                exports['pulsar-core']:LoggerTrace('Vehicles',
-                    'Running Destroyed Damage Degen - Data: ' .. json.encode(currentDamage))
+                plsr.Logger:Trace('Vehicles', 'Running Destroyed Damage Degen - Data: ' .. json.encode(currentDamage))
             end
         end
 
-        vehEnt.state:set('DamagedParts', currentDamage, true)
+        vehEnt.DamagedParts = currentDamage
         return currentDamage
     end
 end
 
 function RunVehiclePartsDamageEffects(veh)
     if DoesEntityExist(veh) and INSIDE_HAS_DEGEN then
-        local vehEnt = Entity(veh)
-        local currentDamage = vehEnt.state.DamagedParts
+        local vehEnt = plsr.State.Entity(veh)
+        local currentDamage = vehEnt.DamagedParts
         local vehSpeed = GetEntitySpeed(veh) * 3.6
         local funChance = math.random(1, 100)
         if type(currentDamage) == 'table' then
@@ -115,7 +112,7 @@ function RunVehiclePartsDamageEffects(veh)
                 end
 
                 if amount then
-                    exports['pulsar-core']:LoggerTrace('Vehicles', 'Running Damage Effects - Axle')
+                    plsr.Logger:Trace('Vehicles', 'Running Damage Effects - Axle')
                     CreateThread(function()
                         for i = 0, amount do
                             SetVehicleSteerBias(veh, -1.0)
@@ -132,7 +129,7 @@ function RunVehiclePartsDamageEffects(veh)
             -- Electronics
             if currentDamage.Electronics and currentDamage.Electronics <= 22.5 then
                 if (currentDamage.Electronics >= 15.0 and funChance >= 80) or (currentDamage.Electronics < 15.0 and currentDamage.Electronics >= 5.0 and funChance >= 65) or (currentDamage.Electronics < 5.0 and funChance >= 50) then
-                    exports['pulsar-core']:LoggerTrace('Vehicles', 'Running Damage Effects - Electronics')
+                    plsr.Logger:Trace('Vehicles', 'Running Damage Effects - Electronics')
                     if currentDamage.Electronics <= 10 and funChance >= 90 then
                         CreateThread(function()
                             SetVehicleControlsInverted(veh, true)
@@ -155,7 +152,7 @@ function RunVehiclePartsDamageEffects(veh)
             funChance = math.random(1, 100)
             -- Brakes
             if (currentDamage.Brakes and currentDamage.Brakes <= 25.0) and funChance >= 50 then
-                exports['pulsar-core']:LoggerTrace('Vehicles', 'Running Damage Effects - Brakes')
+                plsr.Logger:Trace('Vehicles', 'Running Damage Effects - Brakes')
                 CreateThread(function()
                     WEAK_BRAKES = true
                     SetVehicleWeakBrakesState(veh, true)
@@ -183,13 +180,13 @@ function RunVehiclePartsDamageEffects(veh)
                 end
 
                 if amount then
-                    exports['pulsar-core']:LoggerTrace('Vehicles', 'Running Damage Effects - Fuel Injectors')
+                    plsr.Logger:Trace('Vehicles', 'Running Damage Effects - Fuel Injectors')
 
                     CreateThread(function()
                         for i = 1, amount do
-                            exports['pulsar-vehicles']:EngineForce(veh, false)
+                            plsr.Vehicles.Engine:Force(veh, false)
                             Wait(wait)
-                            exports['pulsar-vehicles']:EngineForce(veh, true)
+                            plsr.Vehicles.Engine:Force(veh, true)
                             Wait(wait + 100)
                         end
                     end)
@@ -222,7 +219,7 @@ function RunVehiclePartsDamageEffects(veh)
                 if damageHit then
                     local newHealth = engineHealth - damageHit
                     if newHealth <= -2000 then
-                        exports['pulsar-core']:LoggerTrace('Vehicles', 'Running Damage Effects - Radiator')
+                        plsr.Logger:Trace('Vehicles', 'Running Damage Effects - Radiator')
                         SetVehicleEngineHealth(veh, newHealth)
                     end
                 end
@@ -243,7 +240,7 @@ function RunVehiclePartsDamageEffects(veh)
                 end
 
                 if amount then
-                    exports['pulsar-core']:LoggerTrace('Vehicles', 'Running Damage Effects - Transmission')
+                    plsr.Logger:Trace('Vehicles', 'Running Damage Effects - Transmission')
                     CreateThread(function()
                         for i = 1, amount do
                             SetVehicleHandbrake(veh, true)
@@ -270,13 +267,13 @@ function RunVehiclePartsDamageEffects(veh)
                 end
 
                 if wait then
-                    exports['pulsar-core']:LoggerTrace('Vehicles', 'Running Damage Effects - Clutch')
-                    local isDamaged = true
+                    plsr.Logger:Trace('Vehicles', 'Running Damage Effects - Clutch')
+                    local lolGetFucked = true
                     Citizen.SetTimeout(wait, function()
-                        isDamaged = false
+                        lolGetFucked = false
                     end)
                     CreateThread(function()
-                        while isDamaged do
+                        while lolGetFucked do
                             Wait(5)
                             SetVehicleCurrentRpm(veh, 0.2)
                         end
@@ -289,10 +286,10 @@ end
 
 function SetVehicleWeakBrakesState(veh, state)
     if state then
-        exports['pulsar-core']:LoggerTrace('Vehicles', 'Weak Brakes: On')
+        plsr.Logger:Trace('Vehicles', 'Weak Brakes: On')
         SetVehicleHandlingOverrideMultiplier(veh, 'fBrakeForce', 'Float', 0.5)
     else
-        exports['pulsar-core']:LoggerTrace('Vehicles', 'Weak Brakes: Off')
+        plsr.Logger:Trace('Vehicles', 'Weak Brakes: Off')
         ResetVehicleHandlingOverride(veh, 'fBrakeForce')
     end
 end

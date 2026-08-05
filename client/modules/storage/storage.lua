@@ -24,30 +24,30 @@ AddEventHandler('Vehicles:Client:StartUp', function()
             }
 
             if v.zone and v.zone.type == 'poly' and v.zone.points then
-                exports['pulsar-polyzone']:CreatePoly('veh_storage_' .. k, v.zone.points, {
+                plsr.Polyzone.Create:Poly('veh_storage_'.. k, v.zone.points, {
                     minZ = v.zone.minZ,
                     maxZ = v.zone.maxZ,
-                    debugPoly = false
+					debugPoly = false
                 }, data)
             elseif v.zone and v.zone.type == 'box' and v.zone.center and v.zone.length and v.zone.width then
-                exports['pulsar-polyzone']:CreateBox('veh_storage_' .. k, v.zone.center, v.zone.length, v.zone.width, {
+                plsr.Polyzone.Create:Box('veh_storage_'.. k, v.zone.center, v.zone.length, v.zone.width, {
                     heading = v.zone.heading,
                     minZ = v.zone.minZ,
                     maxZ = v.zone.maxZ,
-                    debugPoly = false
+					debugPoly = false
                 }, data)
             end
         end
     end
 
-    exports['pulsar-hud']:InteractionRegisterMenu("veh_storage", "Open Garage", "warehouse", function()
+    plsr.Interaction:RegisterMenu("veh_storage", 'Garage List', "warehouse", function()
         OpenVehicleStorage()
-        exports['pulsar-hud']:InteractionHide()
+        plsr.Interaction:Hide()
     end, function()
         local pedCoords = GetEntityCoords(GLOBAL_PED)
         local inVehicleStorageZone, vehicleStorageZoneId = GetVehicleStorageAtCoords(pedCoords)
 
-        return inVehicleStorageZone or exports['pulsar-properties']:GetNearHouseGarage()
+        return inVehicleStorageZone or plsr.Properties:GetNearHouseGarage()
     end)
 end)
 
@@ -55,21 +55,20 @@ AddEventHandler('Vehicles:Client:CharacterLogin', function()
     if _vehicleStorage then
         for k, v in pairs(_vehicleStorage) do
             if not v.restricted and not v.hideBlip then
-                exports["pulsar-blips"]:Add('veh_storage_' .. k, v.name, v.coords, blipsForVehType[v.vehType], 12, 0.6,
-                    false, 10)
+                plsr.Blips:Add('veh_storage_'.. k, v.name, v.coords, blipsForVehType[v.vehType], 12, 0.6, false, 10)
             end
         end
 
         Wait(2500)
-
+        
         -- Add Restricted Ones After so the Blips Appear With the Restricted Ones at the end of the list
         -- for k, v in pairs(_vehicleStorage) do
         --     if v.restricted then
-        --         local charJobs = exports['pulsar-jobs']:GetJobs()
-
+        --         local charJobs = Jobs.Permissions:GetJobs()
+                
         --         if #charJobs > 0 then
         --             if DoesCharacterPassStorageRestrictions(-1, charJobs, v.restricted) then
-        --                 exports["pulsar-blips"]:Add('veh_storage_'.. k, v.name .. ' [Restricted]', v.coords, blipsForVehType[v.vehType], 6, 0.45, false, 10)
+        --                 plsr.Blips:Add('veh_storage_'.. k, v.name .. ' [Restricted]', v.coords, blipsForVehType[v.vehType], 6, 0.45, false, 10)
         --             end
         --         end
         --     end
@@ -78,7 +77,7 @@ AddEventHandler('Vehicles:Client:CharacterLogin', function()
 end)
 
 function GetVehicleStorageAtCoords(coords)
-    local insideZone = exports['pulsar-polyzone']:IsCoordsInZone(coords, false, 'veh_storage')
+    local insideZone = plsr.Polyzone:IsCoordsInZone(coords, false, 'veh_storage')
     if insideZone and insideZone.veh_storage and insideZone.veh_storage_id then
         return true, insideZone.veh_storage_id
     end
@@ -90,53 +89,54 @@ AddEventHandler('Vehicles:Client:StoreVehicle', function(entityData)
         local vehicleCoords = GetEntityCoords(entityData.entity)
         DetachVehicleFromTrailer(entityData.entity)
         local inVehicleStorageZone, vehicleStorageZoneId = GetVehicleStorageAtCoords(vehicleCoords)
-        local vehState = Entity(entityData.entity).state
+        local vehState = plsr.State.Entity(entityData.entity)
 
-        if vehState.EmergencyBoat and exports['pulsar-vehicles']:HasAccess(entityData.entity, true) and GetPedInVehicleSeat(entityData.entity) == 0 and GetEntitySpeed(entityData.entity) <= 1 then
+        if vehState.EmergencyBoat and plsr.Vehicles:HasAccess(entityData.entity, true) and GetPedInVehicleSeat(entityData.entity) == 0 and GetEntitySpeed(entityData.entity) <= 1  then
             TriggerServerEvent("Vehicles:Server:DeleteEmergencyBoat", VehToNet(entityData.entity))
             return
         end
 
+        -- Also checks that nobody is in the drivers seat and that the vehicle is not moving
         if vehState and vehState.VIN and vehState.Owned and GetPedInVehicleSeat(entityData.entity) == 0 and GetEntitySpeed(entityData.entity) <= 1 then
             if inVehicleStorageZone and vehicleStorageZoneId then
-                exports["pulsar-core"]:ServerCallback('Vehicles:PutVehicleInStorage', {
+                plsr.Callbacks:ServerCallback('Vehicles:PutVehicleInStorage', {
                     VIN = vehState.VIN,
                     storageId = vehicleStorageZoneId,
                 }, function(success)
                     if success then
-                        exports["pulsar-hud"]:Notification("success", 'Stored Vehicle')
+                        plsr.Notification:Success('Stored Vehicle')
                     else
-                        exports["pulsar-hud"]:Notification("error", 'Error Storing Vehicle')
+                        plsr.Notification:Error('Error Storing Vehicle')
                     end
                 end)
             else
-                local propGarage = exports['pulsar-properties']:GetNearHouseGarage(vehicleCoords)
+                local propGarage = plsr.Properties:GetNearHouseGarage(vehicleCoords)
                 if propGarage and propGarage.propertyId then
-                    local prop = exports['pulsar-properties']:Get(propGarage.propertyId)
-                    if prop and prop.keys ~= nil and prop.keys[LocalPlayer.state.Character:GetData("ID")] ~= nil then
-                        exports["pulsar-core"]:ServerCallback('Vehicles:PutVehicleInPropertyStorage', {
+                    local prop = plsr.Properties:Get(propGarage.propertyId)
+                    if prop and prop.keys ~= nil and prop.keys[plsr.State.character.ID] ~= nil then
+                        plsr.Callbacks:ServerCallback('Vehicles:PutVehicleInPropertyStorage', {
                             VIN = vehState.VIN,
                             storageId = propGarage.propertyId,
                         }, function(success, tooFull)
                             if success then
-                                exports["pulsar-hud"]:Notification("success", 'Stored Vehicle')
+                                plsr.Notification:Success('Stored Vehicle')
                             else
                                 if tooFull then
-                                    exports["pulsar-hud"]:Notification("error", 'Error Storing Vehicle - It\'s Full')
+                                    plsr.Notification:Error('Error Storing Vehicle - It\'s Full')
                                 else
-                                    exports["pulsar-hud"]:Notification("error", 'Error Storing Vehicle')
+                                    plsr.Notification:Error('Error Storing Vehicle')
                                 end
                             end
                         end)
                     else
-                        exports["pulsar-hud"]:Notification("error", 'Don\'t Have Keys to Garage')
+                        plsr.Notification:Error('Don\'t Have Keys to Garage')
                     end
                 else
-                    exports["pulsar-hud"]:Notification("error", 'Error Storing Vehicle')
+                    plsr.Notification:Error('Error Storing Vehicle')
                 end
             end
         else
-            exports["pulsar-hud"]:Notification("error", 'Error Storing Vehicle')
+            plsr.Notification:Error('Error Storing Vehicle')
         end
     end
 end)
@@ -145,10 +145,10 @@ function OpenVehicleStorage()
     local pedCoords = GetEntityCoords(GLOBAL_PED)
     local inVehicleStorageZone, vehicleStorageZoneId = GetVehicleStorageAtCoords(pedCoords)
     if inVehicleStorageZone and vehicleStorageZoneId then
-        local myDuty = LocalPlayer.state.onDuty
+        local myDuty = plsr.State.flags.onDuty
         local vehStorageData = _vehicleStorage[vehicleStorageZoneId]
-        if not vehStorageData or (vehStorageData.restricted and not DoesCharacterPassStorageRestrictions(-1, exports['pulsar-jobs']:GetJobs(), vehStorageData.restricted)) then
-            return exports["pulsar-hud"]:Notification("error", 'Invalid Permission To Access This Vehicle Storage')
+        if not vehStorageData or (vehStorageData.restricted and not DoesCharacterPassStorageRestrictions(-1, plsr.Jobs.Permissions:GetJobs(), vehStorageData.restricted)) then
+            return plsr.Notification:Error('Invalid Permission To Access This Vehicle Storage')
         end
 
         if vehStorageData and vehStorageData.spaces then
@@ -158,76 +158,73 @@ function OpenVehicleStorage()
             else
                 parkingSpace = GetClosestAvailableParkingSpace(pedCoords, vehStorageData.spaces)
             end
-
+            
             if parkingSpace then
-                exports["pulsar-core"]:ServerCallback('Vehicles:GetVehiclesInStorage', vehicleStorageZoneId,
-                    function(storedVehicles)
-                        if not storedVehicles then
-                            exports["pulsar-hud"]:Notification("error", 'Error Fetching Vehicle Storage')
-                            return
-                        end
+                plsr.Callbacks:ServerCallback('Vehicles:GetVehiclesInStorage', vehicleStorageZoneId, function(storedVehicles)
+                    if not storedVehicles then
+                        plsr.Notification:Error('Error Fetching Vehicle Storage')
+                        return
+                    end
 
-                        if #storedVehicles > 0 then
-                            cachedStorageShit = {
-                                storageType = 1,
-                                storageId = vehicleStorageZoneId,
-                                storedVehicleData = storedVehicles,
-                                parkingSpace = parkingSpace,
-                                characterDuty = myDuty
-                            }
-                            OpenVehicleStorageMenu(1, vehicleStorageZoneId, storedVehicles, parkingSpace, myDuty)
-                        else
-                            exports["pulsar-hud"]:Notification("error", 'Vehicle Storage Is Empty')
-                        end
-                    end)
+                    if #storedVehicles > 0 then
+                        cachedStorageShit = {
+                            storageType = 1,
+                            storageId = vehicleStorageZoneId,
+                            storedVehicleData = storedVehicles,
+                            parkingSpace = parkingSpace,
+                            characterDuty = myDuty
+                        }
+                        OpenVehicleStorageMenu(1, vehicleStorageZoneId, storedVehicles, parkingSpace, myDuty)
+                    else
+                        plsr.Notification:Error('Vehicle Storage Is Empty')
+                    end
+                end)
             else
-                exports["pulsar-hud"]:Notification("error", 'Could Not Find Parking Space')
+                plsr.Notification:Error('Could Not Find Parking Space')
             end
         end
     else
-        local propertyGarage = exports['pulsar-properties']:GetNearHouseGarage()
+        local propertyGarage = plsr.Properties:GetNearHouseGarage()
         if propertyGarage and propertyGarage.propertyId then
-            local coords = vector4(propertyGarage.coords.x, propertyGarage.coords.y, propertyGarage.coords.z,
-                propertyGarage.coords.h)
+
+            local coords = vector4(propertyGarage.coords.x, propertyGarage.coords.y, propertyGarage.coords.z, propertyGarage.coords.h)
 
             if IsParkingSpaceFree(coords) then
-                exports["pulsar-core"]:ServerCallback('Vehicles:GetVehiclesInPropertyStorage', propertyGarage
-                    .propertyId,
-                    function(storedVehicles, data, characterId, characters)
-                        if not storedVehicles then
-                            exports["pulsar-hud"]:Notification("error", 'Error Fetching Vehicle Storage')
-                            return
-                        end
+                plsr.Callbacks:ServerCallback('Vehicles:GetVehiclesInPropertyStorage', propertyGarage.propertyId, function(storedVehicles, data, characterId, characters)
+                    if not storedVehicles then
+                        plsr.Notification:Error('Error Fetching Vehicle Storage')
+                        return
+                    end
 
-                        if #storedVehicles > 0 then
-                            cachedStorageShit = {
-                                storageType = 2,
-                                storageId = propertyGarage.propertyId,
-                                storedVehicleData = storedVehicles,
-                                parkingSpace = coords,
-                                characterDuty = LocalPlayer.state.onDuty,
-                                maxCount = data.max,
-                                currentCount = data.current,
-                                characterId = characterId,
-                                characters = characters,
-                            }
-                            OpenVehicleStorageMenu(
-                                2,
-                                propertyGarage.propertyId,
-                                storedVehicles,
-                                coords,
-                                LocalPlayer.state.onDuty,
-                                data.max,
-                                data.current,
-                                characterId,
-                                characters
-                            )
-                        else
-                            exports["pulsar-hud"]:Notification("error", 'Vehicle Storage Is Empty')
-                        end
-                    end)
+                    if #storedVehicles > 0 then
+                        cachedStorageShit = {
+                            storageType = 2,
+                            storageId = propertyGarage.propertyId,
+                            storedVehicleData = storedVehicles,
+                            parkingSpace = coords,
+                            characterDuty = plsr.State.flags.onDuty,
+                            maxCount = data.max,
+                            currentCount = data.current,
+                            characterId = characterId,
+                            characters = characters,
+                        }
+                        OpenVehicleStorageMenu(
+                            2,
+                            propertyGarage.propertyId,
+                            storedVehicles,
+                            coords,
+                            plsr.State.flags.onDuty,
+                            data.max,
+                            data.current,
+                            characterId,
+                            characters
+                        )
+                    else
+                        plsr.Notification:Error('Vehicle Storage Is Empty')
+                    end
+                end)
             else
-                exports["pulsar-hud"]:Notification("error", 'Could Not Find Parking Space')
+                plsr.Notification:Error('Could Not Find Parking Space')
             end
         end
     end
@@ -236,7 +233,7 @@ end
 function CleanupTempVehicle()
     for k, v in pairs(_tempVehicles) do
         if DoesEntityExist(v) then
-            exports['pulsar-core']:GameVehiclesDelete(v)
+            plsr.Game.Vehicles:Delete(v)
             _tempVehicles[k] = nil
         end
     end
@@ -246,7 +243,7 @@ function EstimateDegenState(degen)
     local partCount = 0
     local total = 0
     if degen and type(degen) == "table" then
-        for k, v in pairs(degen) do
+        for k,v in pairs(degen) do
             if type(v) == "number" then
                 partCount += 1
                 total += v
@@ -290,12 +287,12 @@ function EstimateEngineHealth(engineHealth)
         else
             return "Destroyed"
         end
+
     end
     return "Unknown"
 end
 
-function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parkingSpace, characterDuty, maxCount,
-                                currentCount, characterId, characters)
+function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parkingSpace, characterDuty, maxCount, currentCount, characterId, characters)
     tempCurrentStorageType = storageType
     tempCurrentStorageId = storageId
     tempParkingSpace = parkingSpace
@@ -303,15 +300,8 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
 
     local personalVehicles = {}
     local fleetVehicles = {}
-    local assignedFleetVehicles = {}
-    local allFleetVehicles = {}
 
-    local char = LocalPlayer.state.Character
-    local hasFleetManagement = false
-    
-    if char and characterDuty then
-        hasFleetManagement = exports['pulsar-jobs']:HasPermissionInJob(characterDuty, 'FLEET_MANAGEMENT')
-    end
+    local assignedFleetVehicles = {}
 
     for k, v in ipairs(storedVehicleData) do
         if v and v.VIN then
@@ -324,23 +314,14 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
             if v.Owner.Type == 0 then
                 table.insert(personalVehicles, v)
             elseif v.Owner.Type == 1 then
-                local hasGovAssigned = v.GovAssigned and type(v.GovAssigned) == 'table' and #v.GovAssigned > 0
-                local isAssignedToPlayer = false
-                
-                table.insert(allFleetVehicles, v)
-                
-                if char and hasGovAssigned then
+                table.insert(fleetVehicles, v)
+
+                if plsr.State.flags.loggedIn and v.GovAssigned and #v.GovAssigned > 0 then
                     for _, assignee in ipairs(v.GovAssigned) do
-                        if char:GetData('SID') == assignee.SID then
-                            isAssignedToPlayer = true
+                        if plsr.State.character.SID == assignee.SID then
                             table.insert(assignedFleetVehicles, v)
-                            break
                         end
                     end
-                end
-                
-                if not hasGovAssigned then
-                    table.insert(fleetVehicles, v)
                 end
             end
         end
@@ -351,7 +332,7 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
     if storageType == 1 then
         storageName = _vehicleStorage[storageId].name
     elseif storageType == 2 then
-        local prop = exports['pulsar-properties']:Get(storageId)
+        local prop = plsr.Properties:Get(storageId)
         if prop and prop.label then
             storageName = prop.label
         end
@@ -374,12 +355,12 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
 
     if storageType == 2 then
         for k, v in ipairs(personalVehicles) do
-            if v.Owner and tostring(v.Owner.Id) == tostring(characterId) then
+            if v.Owner and v.Owner.Id == characterId then
                 local description = ''
                 if v.RegisteredPlate then
-                    description = 'Plate: ' .. v.RegisteredPlate
+                    description = 'Plate: '.. v.RegisteredPlate
                 else
-                    description = 'Type: ' .. (v.Type == 1 and 'Boat' or 'Aircraft')
+                    description = 'Type: '.. (v.Type == 1 and 'Boat' or 'Aircraft')
                 end
 
                 table.insert(storageMenu.main.items, {
@@ -387,17 +368,18 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
                     description = description,
                     event = "Vehicles:Client:Storage:Select",
                     data = { VIN = v.VIN },
+                    -- submenu = v.VIN,
                 })
             end
         end
 
         for k, v in ipairs(personalVehicles) do
-            if v.Owner and tostring(v.Owner.Id) ~= tostring(characterId) then
+            if v.Owner and v.Owner.Id ~= characterId then
                 local description = ''
                 if v.RegisteredPlate then
-                    description = 'Plate: ' .. v.RegisteredPlate
+                    description = 'Plate: '.. v.RegisteredPlate
                 else
-                    description = 'Type: ' .. (v.Type == 1 and 'Boat' or 'Aircraft')
+                    description = 'Type: '.. (v.Type == 1 and 'Boat' or 'Aircraft')
                 end
 
                 if not storageMenu[string.format("%s-vehicles", v.Owner.Id)] then
@@ -420,6 +402,7 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
                 table.insert(storageMenu[string.format("%s-vehicles", v.Owner.Id)].items, {
                     label = v.Make .. ' ' .. v.Model,
                     description = description,
+                    -- submenu = v.VIN,
                     event = "Vehicles:Client:Storage:Select",
                     data = { VIN = v.VIN },
                 })
@@ -429,9 +412,9 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
         for k, v in ipairs(personalVehicles) do
             local description = ''
             if v.RegisteredPlate then
-                description = 'Plate: ' .. v.RegisteredPlate
+                description = 'Plate: '.. v.RegisteredPlate
             else
-                description = 'Type: ' .. (v.Type == 1 and 'Boat' or 'Aircraft')
+                description = 'Type: '.. (v.Type == 1 and 'Boat' or 'Aircraft')
             end
 
             table.insert(storageMenu.main.items, {
@@ -458,23 +441,9 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
         for k, v in ipairs(assignedFleetVehicles) do
             local description = ''
             if v.RegisteredPlate then
-                description = 'Plate: ' .. v.RegisteredPlate
+                description = 'Plate: '.. v.RegisteredPlate
             else
-                description = 'Type: ' .. (v.Type == 1 and 'Boat' or 'Aircraft')
-            end
-            
-            if v.GovAssigned and type(v.GovAssigned) == 'table' and #v.GovAssigned > 0 then
-                local assignedNames = {}
-                for _, assignee in ipairs(v.GovAssigned) do
-                    local name = string.format("%s %s", assignee.First or "", assignee.Last or "")
-                    if assignee.Callsign then
-                        name = string.format("%s (%s)", name, assignee.Callsign)
-                    end
-                    table.insert(assignedNames, name)
-                end
-                description = description .. ' | Assigned: ' .. table.concat(assignedNames, ', ')
-            else
-                description = description .. ' | Assigned: N/A'
+                description = 'Type: '.. (v.Type == 1 and 'Boat' or 'Aircraft')
             end
 
             table.insert(storageMenu['fleet-assigned'].items, {
@@ -489,8 +458,7 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
     if #fleetVehicles > 0 then
         table.insert(storageMenu.main.items, {
             label = 'Fleet Vehicles',
-            description = characterDuty and 'View Fleet Vehicles That You Have Access To' or
-                'This Requires You to Be On Duty',
+            description = characterDuty and 'View Fleet Vehicles That You Have Access To' or 'This Requires You to Be On Duty',
             submenu = 'fleet',
             disabled = not characterDuty,
         })
@@ -503,23 +471,9 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
         for k, v in ipairs(fleetVehicles) do
             local description = ''
             if v.RegisteredPlate then
-                description = 'Plate: ' .. v.RegisteredPlate
+                description = 'Plate: '.. v.RegisteredPlate
             else
-                description = 'Type: ' .. (v.Type == 1 and 'Boat' or 'Aircraft')
-            end
-            
-            if v.GovAssigned and type(v.GovAssigned) == 'table' and #v.GovAssigned > 0 then
-                local assignedNames = {}
-                for _, assignee in ipairs(v.GovAssigned) do
-                    local name = string.format("%s %s", assignee.First or "", assignee.Last or "")
-                    if assignee.Callsign then
-                        name = string.format("%s (%s)", name, assignee.Callsign)
-                    end
-                    table.insert(assignedNames, name)
-                end
-                description = description .. ' | Assigned: ' .. table.concat(assignedNames, ', ')
-            else
-                description = description .. ' | Assigned: N/A'
+                description = 'Type: '.. (v.Type == 1 and 'Boat' or 'Aircraft')
             end
 
             table.insert(storageMenu.fleet.items, {
@@ -531,49 +485,8 @@ function OpenVehicleStorageMenu(storageType, storageId, storedVehicleData, parki
         end
     end
 
-    if hasFleetManagement and #allFleetVehicles > 0 then
-        table.insert(storageMenu.main.items, {
-            label = 'View All Fleet Vehicles',
-            description = 'View All Fleet Vehicles (Fleet Management)',
-            submenu = 'fleet-all',
-        })
-
-        storageMenu['fleet-all'] = {
-            label = 'All Fleet Vehicles',
-            items = {}
-        }
-
-        for k, v in ipairs(allFleetVehicles) do
-            local description = ''
-            if v.RegisteredPlate then
-                description = 'Plate: ' .. v.RegisteredPlate
-            else
-                description = 'Type: ' .. (v.Type == 1 and 'Boat' or 'Aircraft')
-            end
-            
-            if v.GovAssigned and type(v.GovAssigned) == 'table' and #v.GovAssigned > 0 then
-                local assignedNames = {}
-                for _, assignee in ipairs(v.GovAssigned) do
-                    local name = string.format("%s %s", assignee.First or "", assignee.Last or "")
-                    if assignee.Callsign then
-                        name = string.format("%s (%s)", name, assignee.Callsign)
-                    end
-                    table.insert(assignedNames, name)
-                end
-                description = description .. ' | Assigned: ' .. table.concat(assignedNames, ', ')
-            end
-
-            table.insert(storageMenu['fleet-all'].items, {
-                label = v.Make .. ' ' .. v.Model,
-                description = description,
-                event = "Vehicles:Client:Storage:Select",
-                data = { VIN = v.VIN, fleetManagement = true },
-            })
-        end
-    end
-
     vehStorageMenuOpen = true
-    exports['pulsar-hud']:ListMenuShow(storageMenu)
+    plsr.ListMenu:Show(storageMenu)
 end
 
 AddEventHandler("Vehicles:Client:Storage:GoBack", function()
@@ -581,14 +494,14 @@ AddEventHandler("Vehicles:Client:Storage:GoBack", function()
 
     if cachedStorageShit then
         OpenVehicleStorageMenu(
-            cachedStorageShit.storageType,
-            cachedStorageShit.storageId,
-            cachedStorageShit.storedVehicleData,
-            cachedStorageShit.parkingSpace,
-            cachedStorageShit.characterDuty,
-            cachedStorageShit.maxCount,
-            cachedStorageShit.currentCount,
-            cachedStorageShit.characterId,
+            cachedStorageShit.storageType, 
+            cachedStorageShit.storageId, 
+            cachedStorageShit.storedVehicleData, 
+            cachedStorageShit.parkingSpace, 
+            cachedStorageShit.characterDuty, 
+            cachedStorageShit.maxCount, 
+            cachedStorageShit.currentCount, 
+            cachedStorageShit.characterId, 
             cachedStorageShit.characters
         )
     end
@@ -597,43 +510,26 @@ end)
 AddEventHandler("Vehicles:Client:Storage:Select", function(data)
     CleanupTempVehicle()
 
-    exports["pulsar-core"]:ServerCallback("Vehicles:GetVehiclesInStorageSelect", data, function(vehicle)
+    plsr.Callbacks:ServerCallback("Vehicles:GetVehiclesInStorageSelect", data, function(vehicle)
         if tempParkingSpace and vehicle then
             loadingVehicleStorageVehicle = true
-            
-            if not IsModelInCdimage(vehicle.Vehicle) then
+
+            plsr.Game.Vehicles:SpawnLocal(tempParkingSpace.xyz, vehicle.Vehicle, tempParkingSpace.w, function(veh)
+                table.insert(_tempVehicles, veh)
+
+                FreezeEntityPosition(veh, true)
+                SetEntityAlpha(veh, 155)
+                SetVehicleDoorsLocked(veh, 2)
+                if vehicle.Properties then
+                    SetVehicleProperties(veh, vehicle.Properties)
+                end
+                SetEntityCollision(veh, false, true)
+                if vehicle.RegisteredPlate then
+                    SetVehicleNumberPlateText(veh, vehicle.RegisteredPlate)
+                end
+
                 loadingVehicleStorageVehicle = false
-            elseif not IsModelAVehicle(vehicle.Vehicle) then
-                loadingVehicleStorageVehicle = false
-            else
-                local spawnTimeout = SetTimeout(5000, function()
-                    if loadingVehicleStorageVehicle then
-                        loadingVehicleStorageVehicle = false
-                    end
-                end)
-
-                exports['pulsar-core']:GameVehiclesSpawnLocal(tempParkingSpace.xyz, vehicle.Vehicle, tempParkingSpace.w,
-                    function(veh)
-                        ClearTimeout(spawnTimeout)
-                        
-                        if DoesEntityExist(veh) then
-                            table.insert(_tempVehicles, veh)
-
-                            FreezeEntityPosition(veh, true)
-                            SetEntityAlpha(veh, 155)
-                            SetVehicleDoorsLocked(veh, 2)
-                            if vehicle.Properties then
-                                SetVehicleProperties(veh, vehicle.Properties)
-                            end
-                            SetEntityCollision(veh, false, true)
-                            if vehicle.RegisteredPlate then
-                                SetVehicleNumberPlateText(veh, vehicle.RegisteredPlate)
-                            end
-                        end
-
-                        loadingVehicleStorageVehicle = false
-                    end)
-            end
+            end)
         end
 
         local subMenu = {
@@ -647,75 +543,56 @@ AddEventHandler("Vehicles:Client:Storage:Select", function(data)
         }
 
         local vehItems = {}
-
+    
         table.insert(vehItems, {
             label = 'Vehicle\'s Identification',
             description = string.format('VIN: %s, Plate: %s', vehicle.VIN, vehicle.RegisteredPlate or 'N/A'),
             event = false,
         })
-
+    
         if vehicle.Owner.Type == 1 and vehicle.Type ~= 2 then
             table.insert(vehItems, {
                 label = 'Vehicle\'s Current State',
-                description = string.format('Fuel: %s%%<br>Engine State: %s<br>Average Vehicle Parts State: %s',
-                    vehicle.Fuel, EstimateEngineHealth(vehicle.Damage?.Engine), EstimateDegenState(vehicle.DamagedParts)),
+                description = string.format('Fuel: %s%%<br>Engine State: %s<br>Average Vehicle Parts State: %s', vehicle.Fuel, EstimateEngineHealth(vehicle.Damage?.Engine), EstimateDegenState(vehicle.DamagedParts)),
                 event = false,
             })
         else
             table.insert(vehItems, {
                 label = 'Vehicle\'s Current State',
-                description = string.format('Fuel: %s%%<br>Engine State: %s', vehicle.Fuel,
-                    EstimateEngineHealth(vehicle.Damage?.Engine)),
+                description = string.format('Fuel: %s%%<br>Engine State: %s', vehicle.Fuel, EstimateEngineHealth(vehicle.Damage?.Engine)),
                 event = false,
             })
         end
-
-
+    
+    
         if vehicle.Owner.Type == 1 then
-            local fleetDesc = string.format('Req. Level: %s, Ownership Type: %s', vehicle.Owner.Level,
-                vehicle.Owner.Workplace and string.upper(vehicle.Owner.Workplace) or 'All')
-            
-            if vehicle.GovAssigned and type(vehicle.GovAssigned) == 'table' and #vehicle.GovAssigned > 0 then
-                local assignedNames = {}
-                for _, assignee in ipairs(vehicle.GovAssigned) do
-                    local name = string.format("%s %s", assignee.First or "", assignee.Last or "")
-                    if assignee.Callsign then
-                        name = string.format("%s (%s)", name, assignee.Callsign)
-                    end
-                    table.insert(assignedNames, name)
-                end
-                fleetDesc = fleetDesc .. '<br>Assigned To: ' .. table.concat(assignedNames, ', ')
-            else
-                fleetDesc = fleetDesc .. '<br>Assigned To: N/A'
-            end
-            
             table.insert(vehItems, {
                 label = 'Vehicle\'s Fleet Information',
-                description = fleetDesc,
+                description = string.format('Req. Level: %s, Ownership Type: %s', vehicle.Owner.Level, vehicle.Owner.Workplace and string.upper(vehicle.Owner.Workplace) or 'All'),
                 event = false,
             })
-
+    
             if vehicle.LastDriver and #vehicle.LastDriver > 0 then
                 local fhId = vehicle.VIN .. '-fleet-history'
                 local shitCunt = {}
-
+    
                 local timeNow = GetCloudTimeAsInt() or 0
                 for i = #vehicle.LastDriver, 1, -1 do
                     local driver = vehicle.LastDriver[i]
                     local timeString = GetFormattedTimeFromSeconds(timeNow - driver.time)
-
+    
                     table.insert(shitCunt, {
                         label = string.format('Driver SID: %s', driver.char),
                         description = string.format('Returned Vehicle %s Ago', timeString),
                         event = false,
                     })
                 end
-
+    
                 subMenu[fhId] = {
                     label = (vehicle.RegisteredPlate or 'Vehicle') .. ' Fleet History',
                     items = shitCunt
                 }
-
+    
                 table.insert(vehItems, {
                     label = 'Fleet History',
                     description = 'Latest Driver: ' .. (vehicle.LastDriver[#vehicle.LastDriver]?.char or '?'),
@@ -723,58 +600,21 @@ AddEventHandler("Vehicles:Client:Storage:Select", function(data)
                 })
             end
         end
-
+    
         local desc = 'Take the Vehicle Out of Storage'
         local disabled = false
-        
-        local char = LocalPlayer.state.Character
-        local characterDuty = LocalPlayer.state.onDuty
-        
-        local hasFleetManagement = false
-        if char and characterDuty then
-            hasFleetManagement = exports['pulsar-jobs']:HasPermissionInJob(characterDuty, 'FLEET_MANAGEMENT')
-        end
-
+    
         if vehicle.Owner and vehicle.Owner.Qualification then
-            if hasFleetManagement then
-                desc = 'Take the Vehicle Out of Storage (Fleet Management)'
-                disabled = false
-            else
-                desc = 'This Vehicle Requires Qualifications'
-                disabled = true
-
-                if char and char:GetData('Qualifications') and #char:GetData('Qualifications') > 0 then
-                    if hasValue(char:GetData('Qualifications'), vehicle.Owner.Qualification) then
-                        disabled = false
-                    end
+            desc = 'This Vehicle Requires Qualifications'
+            disabled = true
+    
+            if plsr.State.flags.loggedIn and plsr.State.character.Qualifications and #plsr.State.character.Qualifications > 0 then
+                if hasValue(plsr.State.character.Qualifications, vehicle.Owner.Qualification) then
+                    disabled = false
                 end
             end
         end
-
-        if not disabled and vehicle.Owner and vehicle.Owner.Type == 1 and vehicle.GovAssigned and type(vehicle.GovAssigned) == 'table' and #vehicle.GovAssigned > 0 then
-            if char then
-                local isAssignedToPlayer = false
-                local charSID = char:GetData('SID')
-                
-                for _, assignee in ipairs(vehicle.GovAssigned) do
-                    if assignee.SID and tostring(assignee.SID) == tostring(charSID) then
-                        isAssignedToPlayer = true
-                        break
-                    end
-                end
-                
-                if not isAssignedToPlayer then
-                    if hasFleetManagement then
-                        desc = 'Take the Vehicle Out of Storage (Fleet Management Override)'
-                        disabled = false
-                    else
-                        desc = 'This Vehicle is Assigned to Specific Personnel Only'
-                        disabled = true
-                    end
-                end
-            end
-        end
-
+    
         table.insert(vehItems, {
             label = 'Retrieve',
             description = desc,
@@ -784,14 +624,14 @@ AddEventHandler("Vehicles:Client:Storage:Select", function(data)
         })
 
         subMenu.main.items = vehItems
-
-        exports['pulsar-hud']:ListMenuShow(subMenu)
+    
+        plsr.ListMenu:Show(subMenu)
     end)
 end)
 
 AddEventHandler('Vehicles:Client:Storage:Retrieve', function(data)
     if loadingVehicleStorageVehicle then
-        exports["pulsar-hud"]:Notification("error", 'Awaiting Vehicle Load')
+        plsr.Notification:Error('Awaiting Vehicle Load')
         Citizen.SetTimeout(2500, function()
             CleanupTempVehicle()
         end)
@@ -800,19 +640,18 @@ AddEventHandler('Vehicles:Client:Storage:Retrieve', function(data)
 
     if data.VIN and tempVehAppearanceData[data.VIN] and tempParkingSpace and tempCurrentStorageId then
         vehActuallySpawningOne = true
-        exports["pulsar-core"]:ServerCallback('Vehicles:RetrieveVehicleFromStorage', {
+        plsr.Callbacks:ServerCallback('Vehicles:RetrieveVehicleFromStorage', {
             coords = tempParkingSpace.xyz,
             heading = tempParkingSpace.w,
             VIN = data.VIN,
             storageType = tempCurrentStorageType,
             storageId = tempCurrentStorageId,
-            fleetManagement = data.fleetManagement or false,
         }, function(success)
             CleanupTempVehicle()
             if success then
-                exports["pulsar-hud"]:Notification("info", 'Spawned Vehicle & Received Keys')
+                plsr.Notification:Info('Spawned Vehicle & Received Keys')
             else
-                exports["pulsar-hud"]:Notification("error", 'Unable to Retrieve Vehicle')
+                plsr.Notification:Error('Error') -- Very descriptive error message
             end
         end)
     end

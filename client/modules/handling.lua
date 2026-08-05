@@ -82,6 +82,6 @@ end
 
 AddEventHandler("Vehicles:Client:ExitVehicle", function(veh)
 	if ResetVehicleHandlingOverrides(veh) then
-		exports['pulsar-core']:LoggerInfo("Vehicles", "Resetting Applied Handling Overrides For Vehicle")
+		plsr.Logger:Info("Vehicles", "Resetting Applied Handling Overrides For Vehicle")
 	end
 end)

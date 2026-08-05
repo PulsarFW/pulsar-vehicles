@@ -27,5 +27,4 @@ end)
 function toggleDoubleClutchBlock(toggle)
 	_isEnabled = toggle
 end
-
 exports("toggleDoubleClutchBlock", toggleDoubleClutchBlock)

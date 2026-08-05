@@ -4,8 +4,6 @@ SYNC_DRIVING_EMERGENCY_VEHICLE = false
 DISABLE_AIR_CONTROL = false
 SYNCED_VEHICLES = {}
 SYNCED_EMERGENCY_VEHICLES = {}
-PLAYER_IS_HOLDING_BIKE = false
-PLAYER_BIKE_ENTITY = 0
 local vehicleActionRLimits = {}
 local noDisableLeanInAir = {
     [8] = true,
@@ -19,7 +17,7 @@ function AddSyncedVehicle(veh)
     if not SYNCED_VEHICLES[veh] then
         local vehClass = GetVehicleClass(veh)
         local data, emergencyData = GetSyncedVehicleStateData(veh, vehClass == 18)
-
+    
         SYNCED_VEHICLES[veh] = data
         UpdateVehicleIndicatorState(veh, SYNCED_VEHICLES[veh].indicators)
         UpdateVehicleNeonsState(veh, SYNCED_VEHICLES[veh].neonsDisabled)
@@ -29,9 +27,9 @@ function AddSyncedVehicle(veh)
             SetVehicleEmergencySirens(veh, SYNCED_EMERGENCY_VEHICLES[veh].lights, SYNCED_EMERGENCY_VEHICLES[veh].siren)
         end
 
-        local ent = Entity(veh)
-        if ent and ent.state and ent.state.ForcedAudio then
-            ForceVehicleEngineAudio(veh, ent.state.ForcedAudio)
+        local ent = plsr.State.Entity(veh)
+        if ent and ent.ForcedAudio then
+            ForceVehicleEngineAudio(veh, ent.ForcedAudio)
         end
     end
 end
@@ -51,22 +49,22 @@ function DestroySyncedVehicle(veh)
 end
 
 function GetSyncedVehicleStateData(veh, isEmergency)
-    local vehEnt = Entity(veh)
+    local vehEnt = plsr.State.Entity(veh)
     local vEmergencyState = false
     local vState = {
         indicators = false,
         neons = false,
     }
 
-    if vehEnt and vehEnt.state then
-        local indicatorState = vehEnt.state.indicators
+    if vehEnt then
+        local indicatorState = vehEnt.indicators
         if indicatorState ~= nil then
             vState.indicators = indicatorState
         else
             vState.indicators = false
         end
 
-        local neonState = vehEnt.state.neonsDisabled
+        local neonState = vehEnt.neonsDisabled
         vState.neonsDisabled = neonState
 
         if isEmergency then
@@ -76,12 +74,12 @@ function GetSyncedVehicleStateData(veh, isEmergency)
                 airhorn = false,
             }
 
-            local lightsState = vehEnt.state.emLights
+            local lightsState = vehEnt.emLights
             if lightsState ~= nil then
                 vEmergencyState.lights = lightsState
             end
 
-            local sirenState = vehEnt.state.emSirens
+            local sirenState = vehEnt.emSirens
             if sirenState ~= nil then
                 vEmergencyState.siren = sirenState
             end
@@ -156,7 +154,7 @@ AddEventHandler('Vehicles:Client:BecameDriver', function(veh, seat, class)
                 DisableControlAction(0, 60, true)
                 sleep = false
             end
-
+    
             if SYNC_DRIVING_EMERGENCY_VEHICLE then
                 DisableControlAction(0, 80, true)
                 DisableControlAction(0, 81, true)
@@ -201,10 +199,3 @@ RegisterNetEvent("Vehicle:Client:ForceAudio", function(vNet, audio)
     end
 end)
 
-AddEventHandler("Vehicle:Client:PickupBike", function(entityData)
-    if not DoesEntityExist(entityData.entity) then
-        return
-    end
-
-    exports['pulsar-vehicles']:SyncBikePickup(entityData.entity)
-end)

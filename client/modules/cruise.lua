@@ -20,7 +20,7 @@ function DisableCruiseControl(skip)
 end
 
 AddEventHandler('Vehicles:Client:StartUp', function()
-    exports["pulsar-kbs"]:Add('vehicle_cruise', '', 'keyboard', 'Vehicle - Toggle Cruise', function()
+    plsr.Keybinds:Add('vehicle_cruise', '', 'keyboard', 'Vehicle - Toggle Cruise', function()
         if VEHICLE_INSIDE and not noCruise[VEHICLE_CLASS] then
             if VEHICLE_CRUISE then
                 DisableCruiseControl(true)
@@ -30,7 +30,7 @@ AddEventHandler('Vehicles:Client:StartUp', function()
                     VEHICLE_CRUISE = true
                     SetEntityMaxSpeed(VEHICLE_INSIDE, speed)
                 else
-                    exports["pulsar-hud"]:Notification("info", 'Cruise Can Only Be Enabled Above 15MPH')
+                    plsr.Notification:Info('Cruise Can Only Be Enabled Above 15MPH')
                 end
             end
 

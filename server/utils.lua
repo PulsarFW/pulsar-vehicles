@@ -38,7 +38,7 @@ local _trailerModels = {
 --     -- end
 -- end
 
-function CreateVehicleFunc(type, model, coords, heading, useShitWay)
+function CreateFuckingVehicle(type, model, coords, heading, useShitWay)
     if not useShitWay then
         if not heading then heading = 0.0 end
         if model ~= nil then
@@ -59,7 +59,7 @@ function ParseImpoundData(fine, hold, impounder)
     if not fine then
         fine = 0
     end
-    if type(hold) ~= 'number' or hold <= 0 then
+    if type(hold) ~= 'number' or hold <= 0 then 
         hold = 0
     end
 
@@ -93,8 +93,8 @@ function GetVehicleTypeDefaultStorage(vehicleType)
 end
 
 function DoesVehiclePassStorageRestrictions(source, restrictedData)
-    for k, v in ipairs(restrictedData) do
-        if exports['pulsar-jobs']:HasJob(source, v.JobId, v.WorkplaceId) then
+    for k,v in ipairs(restrictedData) do
+        if plsr.Jobs.Permissions:HasJob(source, v.JobId, v.WorkplaceId) then
             return true
         end
     end

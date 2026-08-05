@@ -26,16 +26,16 @@ function SetVehicleOffroadState(veh, state)
         local fTractionLossMultMult = _loseTractionBadlyClasses[class] and 1.3 or 1.1
         local fTractionCurveMinMult = _loseTractionBadlyClasses[class] and 0.8 or 0.9
         local fLowSpeedTractionLossMultMult = _loseTractionBadlyClasses[class] and 1.2 or 1.1
-
+        
         SetVehicleHandlingOverrideMultiplier(veh, 'fTractionLossMult', 'Float', fTractionLossMultMult)
         SetVehicleHandlingOverrideMultiplier(veh, 'fTractionCurveMin', 'Float', fTractionCurveMinMult)
         SetVehicleHandlingOverrideMultiplier(veh, 'fLowSpeedTractionLossMult', 'Float', fLowSpeedTractionLossMultMult)
 
-        exports['pulsar-core']:LoggerTrace('Vehicles', 'Offroad Handling: On')
+        plsr.Logger:Trace('Vehicles', 'Offroad Handling: On')
     else
         ResetVehicleHandlingOverride(veh, 'fTractionLossMult')
         ResetVehicleHandlingOverride(veh, 'fTractionCurveMin')
         ResetVehicleHandlingOverride(veh, 'fLowSpeedTractionLossMult')
-        exports['pulsar-core']:LoggerTrace('Vehicles', 'Offroad Handling: Off')
+        plsr.Logger:Trace('Vehicles', 'Offroad Handling: Off')
     end
 end

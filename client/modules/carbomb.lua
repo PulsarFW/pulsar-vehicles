@@ -6,14 +6,10 @@ local CAR_BOMB_SPEED = 0
 local CAR_BOMB_TICK_MAX = 0
 
 AddEventHandler('Vehicles:Client:StartUp', function()
-    exports["pulsar-core"]:RegisterClientCallback('Vehicles:UseCarBomb', function(data, cb)
-        local playerCoords = GetEntityCoords(PlayerPedId())
-        local maxDistance = 2.0
-        local includePlayerVehicle = false
-
-        local vehicle = lib.getClosestVehicle(playerCoords, maxDistance, includePlayerVehicle)
-        if vehicle and DoesEntityExist(vehicle) and IsEntityAVehicle(vehicle) then
-            if exports['pulsar-vehicles']:UtilsIsCloseToVehicle(vehicle) then
+    plsr.Callbacks:RegisterClientCallback('Vehicles:UseCarBomb', function(data, cb)
+        local target = plsr.Targeting:GetEntityPlayerIsLookingAt()
+        if target and target.entity and DoesEntityExist(target.entity) and IsEntityAVehicle(target.entity) then
+            if plsr.Vehicles.Utils:IsCloseToVehicle(target.entity) then
                 local carBombConfig = GetCarBombConfig()
 
                 if type(carBombConfig.minSpeed) ~= 'number' then
@@ -24,7 +20,7 @@ AddEventHandler('Vehicles:Client:StartUp', function()
                     return cb(false, 'Invalid Pre Explosion Time')
                 end
 
-                exports['pulsar-hud']:Progress({
+                plsr.Progress:Progress({
                     name = "vehicle_install_carbomb",
                     duration = 5000,
                     label = "Installing Car Bomb",
@@ -40,8 +36,8 @@ AddEventHandler('Vehicles:Client:StartUp', function()
                         anim = "mechanic2",
                     },
                 }, function(cancelled)
-                    if not cancelled and exports['pulsar-vehicles']:UtilsIsCloseToVehicle(vehicle) then
-                        cb(VehToNet(vehicle), false, carBombConfig)
+                    if not cancelled and plsr.Vehicles.Utils:IsCloseToVehicle(target.entity) then
+                        cb(VehToNet(target.entity), false, carBombConfig)
                     else
                         cb(false)
                     end
@@ -69,27 +65,28 @@ function DoCarBombDetonate(veh)
         PlaySoundFromEntity(-1, 'Beep_Red', veh, 'DLC_HEIST_HACKING_SNAKE_SOUNDS', true, true)
     end
 
-    exports["pulsar-core"]:NetworkExplodeVehicle(veh, 1, 0)
+    plsr.NetSync:NetworkExplodeVehicle(veh, 1, 0)
     ResetCarBomb()
 
     TriggerServerEvent('Vehicles:Server:RemoveBomb', VehToNet(veh))
 end
 
 AddEventHandler('Vehicles:Client:StartUp', function()
-
+    
 end)
 
 AddEventHandler('Vehicles:Client:BecameDriver', function(veh)
-    local vehEnt = Entity(veh)
-    if vehEnt and vehEnt.state and vehEnt.state.CarBomb then
+    local vehEnt = plsr.State.Entity(veh)
+    if vehEnt and vehEnt.CarBomb then
         CAR_BOMB_THREAD = true
-        CAR_BOMB_TIME = math.ceil((vehEnt.state.CarBomb.Removal or 1) * 60)
+        CAR_BOMB_TIME = math.ceil((vehEnt.CarBomb.Removal or 1) * 60)
         CAR_BOMB_TICK = 0
-        CAR_BOMB_TICK_MAX = vehEnt.state.CarBomb.ExplosionTicks or 5
-        CAR_BOMB_SPEED = vehEnt.state.CarBomb.Speed or 0
+        CAR_BOMB_TICK_MAX = vehEnt.CarBomb.ExplosionTicks or 5
+        CAR_BOMB_SPEED = vehEnt.CarBomb.Speed or 0
 
         CreateThread(function()
             while CAR_BOMB_THREAD do
+
                 if not CAR_BOMB_ENABLED then
                     if CAR_BOMB_SPEED <= 0 then
                         if GetIsVehicleEngineRunning(veh) then
@@ -97,15 +94,13 @@ AddEventHandler('Vehicles:Client:BecameDriver', function(veh)
                         end
                     elseif GetVehicleMPH(veh) > CAR_BOMB_SPEED then
                         CAR_BOMB_ENABLED = true
-                        exports["pulsar-hud"]:Notification("warning",
-                            "THIS VEHICLE HAS A BOMB - STAY ABOVE " ..
-                            math.ceil(CAR_BOMB_SPEED) .. "MPH AND DO NOT LEAVE THE VEHICLE", 15000)
+                        plsr.Notification:Warn("THIS VEHICLE HAS A BOMB - STAY ABOVE " .. math.ceil(CAR_BOMB_SPEED) .. "MPH AND DO NOT LEAVE THE VEHICLE", 15000)
                     end
                 else
                     CAR_BOMB_TIME -= 1
 
                     if CAR_BOMB_TIME <= 0 then
-                        exports["pulsar-hud"]:Notification("info", "Bomb Disarmed", 10000)
+                        plsr.Notification:Info("Bomb Disarmed", 10000)
 
                         ResetCarBomb()
                         TriggerServerEvent('Vehicles:Server:RemoveBomb', VehToNet(veh))
@@ -144,39 +139,39 @@ end)
 local linkPromise
 function GetCarBombConfig()
     linkPromise = promise.new()
-    exports['pulsar-hud']:InputShow('Car Bomb', 'URL', {
-        {
-            id = 'minSpeed',
-            type = 'number',
-            options = {
+    plsr.Input:Show('Car Bomb', 'URL', {
+		{
+			id = 'minSpeed',
+			type = 'number',
+			options = {
                 label = 'Minimum Speed (MPH) (0 for Ignition Bomb)',
-                inputProps = {
+				inputProps = {
                     maxLength = 3,
                 },
-            },
-        },
+			},
+		},
         {
-            id = 'removalTime',
-            type = 'number',
-            options = {
+			id = 'removalTime',
+			type = 'number',
+			options = {
                 label = 'Deactivation Time (Minutes)',
-                inputProps = {
+				inputProps = {
                     maxLength = 4,
                 },
-            },
-        },
+			},
+		},
         {
-            id = 'preExplosionTicks',
-            type = 'number',
-            options = {
+			id = 'preExplosionTicks',
+			type = 'number',
+			options = {
                 label = 'Ticks Before it Explodes',
-                inputProps = {
+				inputProps = {
                     defaultValue = '5',
                     maxLength = 2,
                 },
-            },
-        },
-    }, 'Vehicles:Client:RecieveCarBombConfig', {})
+			},
+		},
+	}, 'Vehicles:Client:RecieveCarBombConfig', {})
 
     return Citizen.Await(linkPromise)
 end

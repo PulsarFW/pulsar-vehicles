@@ -13,47 +13,34 @@ function SetVehicleEmergencySirens(veh, lights, sirens)
 end
 
 function DoVehicleEmergencyUpdate(veh, newLightState, newSirenState)
-    local vehEnt = Entity(veh)
+    local vehEnt = plsr.State.Entity(veh)
     if vehEnt then
-        vehEnt.state:set('emLights', newLightState, true)
-        vehEnt.state:set('emSirens', newSirenState, true)
-        -- TriggerServerEvent('VehicleSync:Server:Emergency', VehToNet(veh), newLightState, newSirenState)
+        vehEnt.emLights = newLightState
+        vehEnt.emSirens = newSirenState
     end
 end
 
-AddStateBagChangeHandler('emLights', nil, function(bagName, key, value, _unused, replicated)
-    local vNet, count = bagName:gsub('entity:', '')
-    if count > 0 then
-        local veh = NetToVeh(tonumber(vNet))
-
-        if DoesEntityExist(veh) and SYNCED_EMERGENCY_VEHICLES[veh] then
-            SYNCED_EMERGENCY_VEHICLES[veh].lights = value
-            SetVehicleEmergencySirens(veh, value, SYNCED_EMERGENCY_VEHICLES[veh].siren)
-        end
+plsr.State.Entity:WatchKey('emLights', function(netId, value)
+    local veh = NetToVeh(netId)
+    if DoesEntityExist(veh) and SYNCED_EMERGENCY_VEHICLES[veh] then
+        SYNCED_EMERGENCY_VEHICLES[veh].lights = value
+        SetVehicleEmergencySirens(veh, value, SYNCED_EMERGENCY_VEHICLES[veh].siren)
     end
 end)
 
-AddStateBagChangeHandler('emSirens', nil, function(bagName, key, value, _unused, replicated)
-    local vNet, count = bagName:gsub('entity:', '')
-    if count > 0 then
-        local veh = NetToVeh(tonumber(vNet))
-
-        if DoesEntityExist(veh) and SYNCED_EMERGENCY_VEHICLES[veh] then
-            SYNCED_EMERGENCY_VEHICLES[veh].siren = value
-            SetVehicleEmergencySirens(veh, SYNCED_EMERGENCY_VEHICLES[veh].lights, value)
-        end
+plsr.State.Entity:WatchKey('emSirens', function(netId, value)
+    local veh = NetToVeh(netId)
+    if DoesEntityExist(veh) and SYNCED_EMERGENCY_VEHICLES[veh] then
+        SYNCED_EMERGENCY_VEHICLES[veh].siren = value
+        SetVehicleEmergencySirens(veh, SYNCED_EMERGENCY_VEHICLES[veh].lights, value)
     end
 end)
 
-AddStateBagChangeHandler('emAirhorn', nil, function(bagName, key, value, _unused, replicated)
-    local vNet, count = bagName:gsub('entity:', '')
-    if count > 0 then
-        local veh = NetToVeh(tonumber(vNet))
-
-        if DoesEntityExist(veh) and SYNCED_EMERGENCY_VEHICLES[veh] then
-            SYNCED_EMERGENCY_VEHICLES[veh].airhorn = value
-            SetVehicleAirhornSounds(veh, value)
-        end
+plsr.State.Entity:WatchKey('emAirhorn', function(netId, value)
+    local veh = NetToVeh(netId)
+    if DoesEntityExist(veh) and SYNCED_EMERGENCY_VEHICLES[veh] then
+        SYNCED_EMERGENCY_VEHICLES[veh].airhorn = value
+        SetVehicleAirhornSounds(veh, value)
     end
 end)
 
@@ -69,10 +56,9 @@ end)
 -- end)
 
 function DoVehicleEmergencyAirhorn(veh, state)
-    --TriggerServerEvent('VehicleSync:Server:EmergencyAirhorn', VehToNet(veh), state)
-    local vehEnt = Entity(veh)
+    local vehEnt = plsr.State.Entity(veh)
     if vehEnt then
-        vehEnt.state:set('emAirhorn', state, true)
+        vehEnt.emAirhorn = state
     end
 end
 

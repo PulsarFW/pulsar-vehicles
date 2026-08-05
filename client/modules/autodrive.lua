@@ -13,15 +13,15 @@ local keysToDisable = {
 }
 
 AddEventHandler('Vehicles:Client:StartUp', function()
-	exports["pulsar-kbs"]:Add('veh_toggle_autodrive', 'Y', 'keyboard', 'Vehicle - Toggle Autopilot', function()
+	plsr.Keybinds:Add('veh_toggle_autodrive', 'Y', 'keyboard', 'Vehicle - Toggle Autopilot', function()
 		if VEHICLE_INSIDE and DoesEntityExist(VEHICLE_INSIDE) and VEHICLE_SEAT == -1 then
-			if exports['pulsar-vehicles']:EngineCheckKeys() then -- check if have keys
+			if plsr.Vehicles.Engine:CheckKeys() then -- check if have keys
 				StartAutoPilot()
 			end
 		end
 	end)
 
-	exports['pulsar-hud']:InteractionRegisterMenu("veh_autodrive_danger", false, "skull-crossbones", function()
+	plsr.Interaction:RegisterMenu("veh_autodrive_danger", false, "skull-crossbones", function()
 		StopAutoPilot()
 		Wait(1000)
 		StartAutoPilot(true)
@@ -34,7 +34,7 @@ AddEventHandler('Vehicles:Client:StartUp', function()
 end)
 
 function StartAutoPilot(crazyMode)
-	local vehicle = GetVehiclePedIsIn(LocalPlayer.state.ped, false)
+	local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
 	if not autopilotActive and vehicle then
 		autopilotActive = true
 		local destination = GetBlipInfoIdCoord(GetFirstBlipInfoId(8))
@@ -46,15 +46,11 @@ function StartAutoPilot(crazyMode)
 
 		-- //If no mark is set, wander.
 		if destination == vector3(0, 0, 0) then
-			TaskVehicleDriveWander(LocalPlayer.state.ped, vehicle, crazyMode and 200.0 or speed, flags)
-			exports["pulsar-hud"]:Notification("info",
-				string.format("Autodrive Wander On", exports["pulsar-kbs"]:GetKey("veh_toggle_autodrive")),
-				8000,
-				"fas fa-car"
-			)
+			TaskVehicleDriveWander(PlayerPedId(), vehicle, crazyMode and 200.0 or speed, flags)
+			plsr.Notification.Persistent:Info("autodrive", "Autodrive Wander On", "fas fa-car")
 		else
 			TaskVehicleDriveToCoordLongrange(
-				LocalPlayer.state.ped,
+				PlayerPedId(),
 				vehicle,
 				destination.x,
 				destination.y,
@@ -63,11 +59,7 @@ function StartAutoPilot(crazyMode)
 				flags,
 				20.0
 			)
-			exports["pulsar-hud"]:Notification("info",
-				string.format("Autodrive To Destination On", exports["pulsar-kbs"]:GetKey("veh_toggle_autodrive")),
-				8000,
-				"fas fa-car"
-			)
+			plsr.Notification.Persistent:Info("autodrive", "Autodrive To Destination On", "fas fa-car")
 		end
 
 		CreateThread(function()
@@ -86,12 +78,8 @@ function StartAutoPilot(crazyMode)
 				Wait(0)
 			end
 
-			ClearPedTasks(LocalPlayer.state.ped)
-			exports["pulsar-hud"]:Notification("info",
-				string.format("Autodrive Off", exports["pulsar-kbs"]:GetKey("veh_toggle_autodrive")),
-				8000,
-				"fas fa-car"
-			)
+			ClearPedTasks(PlayerPedId())
+			plsr.Notification.Persistent:Remove("autodrive")
 		end)
 	end
 end

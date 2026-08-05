@@ -1,10 +1,10 @@
 AddEventHandler('Vehicles:Client:StartUp', function()
-    exports['pulsar-hud']:InteractionRegisterMenu("pd_ems_boats", "Access Boat", "ship", function()
+    plsr.Interaction:RegisterMenu("pd_ems_boats", "Access Boat", "ship", function()
         StartRequestEmergencyBoat()
-        exports['pulsar-hud']:InteractionHide()
+        plsr.Interaction:Hide()
     end, function()
-        if LocalPlayer.state.onDuty == "police" or LocalPlayer.state.onDuty == "ems" then
-            local pedCoords = GetEntityCoords(LocalPlayer.state.ped)
+        if plsr.State.flags.onDuty == "police" or plsr.State.flags.onDuty == "ems" then
+            local pedCoords = GetEntityCoords(PlayerPedId())
             local inVehicleStorageZone, vehicleStorageZoneId = GetVehicleStorageAtCoords(pedCoords)
 
             if inVehicleStorageZone and vehicleStorageZoneId then
@@ -19,7 +19,7 @@ AddEventHandler('Vehicles:Client:StartUp', function()
 end)
 
 function StartRequestEmergencyBoat()
-    local pedCoords = GetEntityCoords(LocalPlayer.state.ped)
+    local pedCoords = GetEntityCoords(PlayerPedId())
     local inVehicleStorageZone, vehicleStorageZoneId = GetVehicleStorageAtCoords(pedCoords)
     if inVehicleStorageZone and vehicleStorageZoneId then
         local vehStorageData = _vehicleStorage[vehicleStorageZoneId]
@@ -34,5 +34,5 @@ function StartRequestEmergencyBoat()
         end
     end
 
-    exports["pulsar-hud"]:Notification("error", "Not at Boat Storage or Spaces Full")
+    plsr.Notification:Error("Not at Boat Storage or Spaces Full")
 end

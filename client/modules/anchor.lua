@@ -7,7 +7,7 @@ function CanBeAnchored(vehicle)
     end
 
     if GetEntitySpeed(vehicle) > 3.0 then
-        exports["pulsar-hud"]:Notification("error", 'Boat Too Fast')
+        plsr.Notification:Error('Boat Too Fast')
         return false
     end
 
@@ -29,7 +29,7 @@ function CheckEntityOwnership(veh)
         return false
     end
 
-    if ownerSource ~= LocalPlayer.state.ID then
+    if ownerSource ~= plsr.State.flags.ID then
         TriggerServerEvent("Vehicles:Client:StartAnchor", ownerSource, VehToNet(veh))
         return false
     else
@@ -43,7 +43,7 @@ AddEventHandler('Vehicles:Client:AnchorBoat', function(entity, data)
     end
 
     if CanBeAnchored(entity.entity) then
-        exports['pulsar-hud']:Progress({
+        plsr.Progress:Progress({
             name = "boat_anchor",
             duration = 5000,
             label = "Toggling Boat Anchor",

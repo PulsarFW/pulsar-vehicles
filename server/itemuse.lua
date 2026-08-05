@@ -1,79 +1,85 @@
 function RegisterItemUses()
-	exports.ox_inventory:RegisterUse("lockpick", "Vehicles", function(source, slot, itemData)
+	plsr.Inventory.Items:RegisterUse("lockpick", "Vehicles", function(source, slot, itemData)
 		Citizen.SetTimeout(500, function()
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:Lockpick", true, function(using, success)
-				if using then
-					exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
-				end
-			end)
-		end)
-	end)
-
-	exports.ox_inventory:RegisterUse("adv_lockpick", "Vehicles", function(source, slot, itemData)
-		Citizen.SetTimeout(500, function()
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:AdvLockpick", true, function(using, success)
-				if using then
-					exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
-				end
-			end)
-		end)
-	end)
-
-	exports.ox_inventory:RegisterUse("lockpick_pd", "Vehicles", function(source, slot, itemData)
-		Citizen.SetTimeout(500, function()
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:PDLockpick", true, function(using, success)
-				if using then
-					exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
-				end
-			end)
-		end)
-	end)
-
-	exports.ox_inventory:RegisterUse("electronics_kit", "Vehicles", function(source, slot, itemData)
-		Citizen.SetTimeout(500, function()
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:Hack", true, function(using, success)
+			plsr.Callbacks:ClientCallback(source, "Vehicles:Lockpick", true, function(using, success)
 				if using then
 					local newValue = slot.CreateDate - (60 * 60 * 24)
 					if success then
 						newValue = slot.CreateDate - (60 * 60 * 12)
 					end
 					if (os.time() - itemData.durability >= newValue) then
-						exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
+						plsr.Inventory.Items:RemoveId(slot.Owner, slot.invType, slot)
 					else
-						exports.ox_inventory:SetItemCreateDate(slot.id, newValue)
+						plsr.Inventory:SetItemCreateDate(slot.id, newValue)
 					end
 				end
 			end)
 		end)
 	end)
 
-	exports.ox_inventory:RegisterUse("adv_electronics_kit", "Vehicles", function(source, slot, itemData)
+	plsr.Inventory.Items:RegisterUse("adv_lockpick", "Vehicles", function(source, slot, itemData)
 		Citizen.SetTimeout(500, function()
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:AdvHack", true, function(using, success)
+			plsr.Callbacks:ClientCallback(source, "Vehicles:AdvLockpick", true, function(using, success)
 				if using then
 					local newValue = slot.CreateDate - (60 * 60 * 24)
 					if success then
 						newValue = slot.CreateDate - (60 * 60 * 12)
 					end
 					if (os.time() - itemData.durability >= newValue) then
-						exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
+						plsr.Inventory.Items:RemoveId(slot.Owner, slot.invType, slot)
 					else
-						exports.ox_inventory:SetItemCreateDate(slot.id, newValue)
+						plsr.Inventory:SetItemCreateDate(slot.id, newValue)
 					end
 				end
 			end)
 		end)
 	end)
 
-	exports.ox_inventory:RegisterUse("screwdriver", "Vehicles", function(source, slot, itemData)
+	plsr.Inventory.Items:RegisterUse("electronics_kit", "Vehicles", function(source, slot, itemData)
+		Citizen.SetTimeout(500, function()
+			plsr.Callbacks:ClientCallback(source, "Vehicles:Hack", true, function(using, success)
+				if using then
+					local newValue = slot.CreateDate - (60 * 60 * 24)
+					if success then
+						newValue = slot.CreateDate - (60 * 60 * 12)
+					end
+					if (os.time() - itemData.durability >= newValue) then
+						plsr.Inventory.Items:RemoveId(slot.Owner, slot.invType, slot)
+					else
+						plsr.Inventory:SetItemCreateDate(slot.id, newValue)
+					end
+				end
+			end)
+		end)
+	end)
+
+	plsr.Inventory.Items:RegisterUse("adv_electronics_kit", "Vehicles", function(source, slot, itemData)
+		Citizen.SetTimeout(500, function()
+			plsr.Callbacks:ClientCallback(source, "Vehicles:AdvHack", true, function(using, success)
+				if using then
+					local newValue = slot.CreateDate - (60 * 60 * 24)
+					if success then
+						newValue = slot.CreateDate - (60 * 60 * 12)
+					end
+					if (os.time() - itemData.durability >= newValue) then
+						plsr.Inventory.Items:RemoveId(slot.Owner, slot.invType, slot)
+					else
+						plsr.Inventory:SetItemCreateDate(slot.id, newValue)
+					end
+				end
+			end)
+		end)
+	end)
+
+	plsr.Inventory.Items:RegisterUse("screwdriver", "Vehicles", function(source, slot, itemData)
 		Citizen.SetTimeout(1500, function()
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:Lockpick", {
+			plsr.Callbacks:ClientCallback(source, "Vehicles:Lockpick", {
 				{
 					base = 4000,
 					mod = 900,
 				},
 				{
-
+	
 					base = 3500,
 					mod = 900,
 				},
@@ -85,125 +91,118 @@ function RegisterItemUses()
 						newValue = slot.CreateDate - (60 * 60 * 12)
 					end
 					if (os.time() - itemData.durability >= newValue) then
-						exports.ox_inventory:RemoveId(slot.Owner, slot.invType, slot)
+						plsr.Inventory.Items:RemoveId(slot.Owner, slot.invType, slot)
 					else
-						exports.ox_inventory:SetItemCreateDate(slot.id, newValue)
+						plsr.Inventory:SetItemCreateDate(slot.id, newValue)
 					end
 				end
 			end)
 		end)
 	end)
 
-	exports.ox_inventory:RegisterUse("repairkit", "Vehicles", function(source, slot, itemData)
-		exports["pulsar-core"]:ClientCallback(source, "Vehicles:RepairKit", false, function(success)
+	plsr.Inventory.Items:RegisterUse("repairkit", "Vehicles", function(source, itemData)
+		plsr.Callbacks:ClientCallback(source, "Vehicles:RepairKit", false, function(success)
 			if success then
-				exports.ox_inventory:RemoveSlot(slot.Owner, slot.Name, 1, slot.Slot, slot.invType)
+				plsr.Inventory.Items:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot, itemData.invType)
 			end
 		end)
 	end)
 
-	exports.ox_inventory:RegisterUse("repairkitadv", "Vehicles", function(source, slot, itemData)
-		exports["pulsar-core"]:ClientCallback(source, "Vehicles:RepairKit", true, function(success)
+	plsr.Inventory.Items:RegisterUse("repairkitadv", "Vehicles", function(source, itemData)
+		plsr.Callbacks:ClientCallback(source, "Vehicles:RepairKit", true, function(success)
 			if success then
-			exports.ox_inventory:RemoveSlot(slot.Owner, slot.Name, 1, slot.Slot, slot.invType)
+				plsr.Inventory.Items:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot, itemData.invType)
 			end
 		end)
 	end)
 
-	exports.ox_inventory:RegisterUse("fakeplates", "Vehicles", function(source, slot, itemData)
-		local currentMeta = slot.MetaData or {}
+	plsr.Inventory.Items:RegisterUse("fakeplates", "Vehicles", function(source, itemData)
+		local currentMeta = itemData.MetaData or {}
 		if not currentMeta.Plate then -- Data needs generating
-			local updatingMetaData = {
-				Plate = exports['pulsar-vehicles']:PlateGenerate(true),
-				VIN = exports['pulsar-vehicles']:VINGenerateLocal(), -- Might not be completely unique but odds are low and idc
-				OwnerName = exports['pulsar-core']:GeneratorNameFirst() ..
-					" " .. exports['pulsar-core']:GeneratorNameLast(),
-				SID = exports['pulsar-core']:SequenceGet("Character"),
-				Vehicle = exports['pulsar-vehicles']:RandomName(),
-			}
-			currentMeta = exports.ox_inventory:UpdateMetaData(source, slot.Slot, updatingMetaData)
+			local updatingMetaData = {}
+
+			updatingMetaData.Plate = plsr.Vehicles.Identification.Plate:Generate(true)
+			updatingMetaData.VIN = plsr.Vehicles.Identification.VIN:GenerateLocal() -- Might not be completely unique but odds are low and idc
+			updatingMetaData.OwnerName = plsr.Generator.Name:First() .. " " .. plsr.Generator.Name:Last()
+			updatingMetaData.SID = plsr.Sequence:Get("Character")
+			updatingMetaData.Vehicle = plsr.Vehicles:RandomName()
+
+			currentMeta = plsr.Inventory:UpdateMetaData(itemData.id, updatingMetaData)
 		end
 
 		if not currentMeta.Vehicle then
-			currentMeta.Vehicle = exports['pulsar-vehicles']:RandomName()
+			currentMeta.Vehicle = plsr.Vehicles:RandomName()
 
-			exports.ox_inventory:UpdateMetaData(source, slot.id, {
+			plsr.Inventory:UpdateMetaData(iitemData.id, {
 				Vehicle = currentMeta.Vehicle
 			})
 		end
 
 		if currentMeta then
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:GetFakePlateAddingVehicle", {}, function(veh)
+			plsr.Callbacks:ClientCallback(source, "Vehicles:GetFakePlateAddingVehicle", {}, function(veh)
 				if not veh then
 					return
 				end
 				veh = NetworkGetEntityFromNetworkId(veh)
 				if veh and DoesEntityExist(veh) then
-					local vehState = Entity(veh).state
+					local vehState = plsr.State.Entity(veh)
 					if not vehState.VIN then
 						return
 					end
 
-					local vehicle = exports['pulsar-vehicles']:OwnedGetActive(vehState.VIN)
+					local vehicle = plsr.Vehicles.Owned:GetActive(vehState.VIN)
 					if not vehicle then
 						return
 					end
 					if not vehicle:GetData("FakePlate") then
-					    local currentProps = vehicle:GetData("Properties") or {}
+						vehicle:SetData("FakePlate", currentMeta.Plate)
+						vehicle:SetData("FakePlateData", currentMeta)
 
-					    if not currentProps.FakePlate then
-					        currentProps.FakePlate = currentMeta.Plate
-					    end
-					
-					    vehicle:SetData("FakePlate", 1)
-					    vehicle:SetData("Properties", currentProps)
-					    vehicle:SetData("FakePlateData", currentMeta)
-					
-					    SetVehicleNumberPlateText(veh, currentMeta.Plate)
-					    vehState.FakePlate = currentMeta.Plate
-					
-					    exports['pulsar-vehicles']:OwnedForceSave(vehState.VIN)
-					
-					    exports.ox_inventory:RemoveSlot(slot.Owner, slot.Name, 1, slot.Slot, slot.invType)
-					
-					    exports['pulsar-hud']:Notification(source, "success", "Fake Plate Installed")
+						SetVehicleNumberPlateText(veh, currentMeta.Plate)
+						vehState.FakePlate = currentMeta.Plate
+
+						plsr.Vehicles.Owned:ForceSave(vehState.VIN)
+
+						plsr.Inventory.Items:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot, itemData.invType)
+
+						plsr.Execute:Client(source, "Notification", "Success", "Fake Plate Installed")
 					else
-					    exports['pulsar-hud']:Notification(source, "error", "A Fake Plate is Already Installed")
+						plsr.Execute:Client(source, "Notification", "Error", "A Fake Plate is Already Installed")
 					end
 				end
 			end)
 		end
 	end)
 
-	exports.ox_inventory:RegisterUse("carpolish", "Vehicles", function(source, itemData)
+	plsr.Inventory.Items:RegisterUse("carpolish", "Vehicles", function(source, itemData)
 		UseCarPolish(source, itemData, 1)
 	end)
 
-	exports.ox_inventory:RegisterUse("carpolish_high", "Vehicles", function(source, itemData)
+	plsr.Inventory.Items:RegisterUse("carpolish_high", "Vehicles", function(source, itemData)
 		UseCarPolish(source, itemData, 2)
 	end)
 
-	exports.ox_inventory:RegisterUse("carclean", "Vehicles", function(source, itemData)
+	plsr.Inventory.Items:RegisterUse("carclean", "Vehicles", function(source, itemData)
 		TriggerClientEvent("Vehicles:Client:CleaningKit", source)
 	end)
 
-	exports.ox_inventory:RegisterUse("purgecontroller", "Vehicles", function(source, itemData)
+	plsr.Inventory.Items:RegisterUse("purgecontroller", "Vehicles", function(source, itemData)
 		UsePurgeColorController(source, itemData)
 	end)
 
-	exports.ox_inventory:RegisterUse("car_bomb", "Vehicles", function(source, itemData)
-		exports["pulsar-core"]:ClientCallback(source, "Vehicles:UseCarBomb", {}, function(veh, reason, config)
+	plsr.Inventory.Items:RegisterUse("car_bomb", "Vehicles", function(source, itemData)
+		plsr.Callbacks:ClientCallback(source, "Vehicles:UseCarBomb", {}, function(veh, reason, config)
 			if not veh then
 				if reason then
-					exports['pulsar-hud']:Notification(source, "error", reason)
+					plsr.Execute:Client(source, "Notification", "Error", reason)
 				end
 				return
 			end
 			veh = NetworkGetEntityFromNetworkId(veh)
 			if veh and DoesEntityExist(veh) then
-				local char = exports['pulsar-characters']:FetchCharacterSource(source)
+				local char = plsr.Fetch:CharacterSource(source)
 				if char then
-					local vehState = Entity(veh).state
+					local vehState = plsr.State.Entity(veh)
 					if not vehState.VIN then
 						return
 					end
@@ -216,89 +215,70 @@ function RegisterItemUses()
 							InstalledBy = char:GetData("SID"),
 						}
 
-						exports.ox_inventory:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot,
-							itemData.invType)
+						plsr.Inventory.Items:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot, itemData.invType)
 
-						exports['pulsar-hud']:Notification(source, "success", "Car Bomb Installed")
+						plsr.Execute:Client(source, "Notification", "Success", "Car Bomb Installed")
 					else
-						exports['pulsar-hud']:Notification(source, "error",
-							"Vehicle Already Has Car Bomb")
+						plsr.Execute:Client(source, "Notification", "Error", "Vehicle Already Has Car Bomb")
 					end
 				else
-					exports['pulsar-hud']:Notification(source, "error", "Error Installing Car Bomb")
+					plsr.Execute:Client(source, "Notification", "Error", "Error Installing Car Bomb")
 				end
 			end
 		end)
 	end)
 
-	exports.ox_inventory:RegisterUse("harness", "Vehicles", function(source, itemData)
-		exports["pulsar-core"]:ClientCallback(source, "Vehicles:InstallHarness", {}, function(veh)
+	plsr.Inventory.Items:RegisterUse("harness", "Vehicles", function(source, itemData)
+		plsr.Callbacks:ClientCallback(source, "Vehicles:InstallHarness", {}, function(veh)
 			if not veh then
 				return
 			end
 			veh = NetworkGetEntityFromNetworkId(veh)
 			if veh and DoesEntityExist(veh) then
-				local vehState = Entity(veh).state
+				local vehState = plsr.State.Entity(veh)
 				if not vehState.VIN then
 					return
 				end
 
-				if exports.ox_inventory:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot, itemData.invType) then
+				if plsr.Inventory.Items:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot, itemData.invType) then
 					vehState.Harness = 10
-					exports['pulsar-hud']:Notification(source, "success", "Harness Installed")
+					plsr.Execute:Client(source, "Notification", "Success", "Harness Installed")
 				end
 			end
 		end)
 	end)
 
-	exports.ox_inventory:RegisterUse("nitrous", "Vehicles", function(source, itemData)
+	plsr.Inventory.Items:RegisterUse("nitrous", "Vehicles", function(source, itemData)
 		if itemData?.MetaData?.Nitrous and itemData?.MetaData?.Nitrous > 0 then
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:InstallNitrous", {}, function(veh)
+			plsr.Callbacks:ClientCallback(source, "Vehicles:InstallNitrous", {}, function(veh)
 				if not veh then
 					return
 				end
 				veh = NetworkGetEntityFromNetworkId(veh)
 				if veh and DoesEntityExist(veh) then
-					local vehState = Entity(veh).state
+					local vehState = plsr.State.Entity(veh)
 					if not vehState.VIN then
 						return
 					end
 
-					if exports.ox_inventory:RemoveId(itemData.Owner, itemData.invType, itemData) then
+					if plsr.Inventory.Items:RemoveId(itemData.Owner, itemData.invType, itemData) then
 						vehState.Nitrous = itemData.MetaData.Nitrous + 0.0
-						exports['pulsar-hud']:Notification(source, "success",
-							"Nitrous Oxide Installed")
+						plsr.Execute:Client(source, "Notification", "Success", "Nitrous Oxide Installed")
 					end
 				end
 			end)
 		else
-			exports['pulsar-hud']:Notification(source, "error", "The Bottle is Empty!")
+			plsr.Execute:Client(source, "Notification", "Error", "The Bottle is Empty!")
 		end
 	end)
 end
 
-RegisterNetEvent('ox_inventory:ready', function()
-	if GetResourceState(GetCurrentResourceName()) == 'started' then
-		RegisterItemUses()
-	end
-end)
-
--- Also try to register on resource start in case ox_inventory is already ready
-AddEventHandler('onResourceStart', function(resourceName)
-	if resourceName == GetCurrentResourceName() then
-		Wait(2000) -- Wait for ox_inventory to be ready
-		if GetResourceState('ox_inventory') == 'started' then
-			RegisterItemUses()
-		end
-	end
-end)
-
 local polishTypes = {
-	{                          -- Normal Polish
+	{ -- Normal Polish
 		length = (60 * 60 * 24 * 7), -- Lasts for a week
 		multiplier = 10.0,
 	},
-	{                           -- High Polish
+	{ -- High Polish
 		length = (60 * 60 * 24 * 14), -- Lasts for 2 weeks
 		multiplier = 15.0,
 	}
@@ -308,13 +288,13 @@ function UseCarPolish(source, itemData, type)
 	local typeData = polishTypes[type]
 	if not type then return end
 
-	exports["pulsar-core"]:ClientCallback(source, "Vehicles:UseCarPolish", {}, function(veh)
+	plsr.Callbacks:ClientCallback(source, "Vehicles:UseCarPolish", {}, function(veh)
 		if not veh then
 			return
 		end
 		veh = NetworkGetEntityFromNetworkId(veh)
 		if veh and DoesEntityExist(veh) then
-			local vehState = Entity(veh).state
+			local vehState = plsr.State.Entity(veh)
 			if not vehState.VIN then
 				return
 			end
@@ -327,48 +307,46 @@ function UseCarPolish(source, itemData, type)
 					Mult = typeData.multiplier,
 				}
 
-				exports.ox_inventory:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot, itemData
-					.invType)
+				plsr.Inventory.Items:RemoveSlot(itemData.Owner, itemData.Name, 1, itemData.Slot, itemData.invType)
 
-				exports['pulsar-hud']:Notification(source, "success", "Polish Applied")
+				plsr.Execute:Client(source, "Notification", "Success", "Polish Applied")
 			else
-				exports['pulsar-hud']:Notification(source, "error",
-					"Vehicle Already Has That Polish and It Was Recently Installed")
+				plsr.Execute:Client(source, "Notification", "Error", "Vehicle Already Has That Polish and It Was Recently Installed")
 			end
 		end
 	end)
 end
 
 function UsePurgeColorController(source, itemData)
-	exports["pulsar-core"]:ClientCallback(source, "Vehicles:UsePurgeColorController", {}, function(veh)
+	plsr.Callbacks:ClientCallback(source, "Vehicles:UsePurgeColorController", {}, function(veh)
 		if not veh then
 			return
 		end
 		veh = NetworkGetEntityFromNetworkId(veh)
 		if veh and DoesEntityExist(veh) then
-			local vehState = Entity(veh).state
+			local vehState = plsr.State.Entity(veh)
 			if not vehState.VIN then
 				return
 			end
 
-			exports["pulsar-core"]:ClientCallback(source, "Vehicles:UsePurgeColorControllerMenu",
-				{ purgeColor = vehState?.PurgeColor, purgeLocation = vehState?.PurgeLocation }, function(retval)
-					if retval then
-						if retval.purgeColor then
-							vehState.PurgeColor = {
-								r = retval.purgeColor.r,
-								g = retval.purgeColor.g,
-								b = retval.purgeColor.b,
-							}
-						end
-						if retval.purgeLocation then
-							vehState.PurgeLocation = retval.purgeLocation
-						end
-						exports['pulsar-hud']:Notification(source, "success", "Purge Changes Applied")
-					else
-						exports['pulsar-hud']:Notification(source, "error", "Changes were discarded")
+			plsr.Callbacks:ClientCallback(source, "Vehicles:UsePurgeColorControllerMenu", { purgeColor = vehState?.PurgeColor, purgeLocation = vehState?.PurgeLocation }, function(retval)
+				if retval then
+					if retval.purgeColor then
+						vehState.PurgeColor = {
+							r = retval.purgeColor.r,
+							g = retval.purgeColor.g,
+							b = retval.purgeColor.b,
+						}
 					end
-				end)
+					if retval.purgeLocation then
+						vehState.PurgeLocation = retval.purgeLocation
+					end
+					plsr.Execute:Client(source, "Notification", "Success", "Purge Changes Applied")
+				else
+					plsr.Execute:Client(source, "Notification", "Error", "Changes were discarded")
+				end
+			end)
+			
 		end
 	end)
 end
@@ -377,9 +355,9 @@ RegisterNetEvent('Vehicles:Server:HarnessDamage', function()
 	local src = source
 	local veh = GetVehiclePedIsIn(GetPlayerPed(src), false)
 	if DoesEntityExist(veh) then
-		local vehState = Entity(veh)
-		if vehState and vehState.state.VIN and vehState.state.Harness and vehState.state.Harness > 0 then
-			vehState.state.Harness = vehState.state.Harness - 1
+		local vehState = plsr.State.Entity(veh)
+		if vehState and vehState.VIN and vehState.Harness and vehState.Harness > 0 then
+			vehState.Harness = vehState.Harness - 1
 		end
 	end
 end)
@@ -387,22 +365,22 @@ end)
 RegisterNetEvent('Vehicles:Server:RemoveBomb', function(vNet)
 	local veh = NetworkGetEntityFromNetworkId(vNet)
 	if veh and DoesEntityExist(veh) then
-		local vehState = Entity(veh)
-		if vehState and vehState.state.VIN and vehState.state.CarBomb then
-			vehState.state.CarBomb = false
+		local vehState = plsr.State.Entity(veh)
+		if vehState and vehState.VIN and vehState.CarBomb then
+			vehState.CarBomb = false
 		end
 	end
 end)
 
 RegisterServerEvent('Vehicles:Server:NitrousUsage', function(vNet, used)
 	local src = source
-	local veh = NetworkGetEntityFromNetworkId(vNet)
+    local veh = NetworkGetEntityFromNetworkId(vNet)
 
-	local ent = Entity(veh)
-	if ent and ent.state and ent.state.Nitrous then
-		ent.state.Nitrous = ent.state.Nitrous - used
-		if ent.state.Nitrous < 0 then
-			ent.state.Nitrous = 0.0
+    local ent = plsr.State.Entity(veh)
+    if ent and ent.Nitrous then
+		ent.Nitrous = ent.Nitrous - used
+		if ent.Nitrous < 0 then
+			ent.Nitrous = 0.0
 		end
-	end
+    end
 end)

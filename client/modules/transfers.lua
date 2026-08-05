@@ -1,17 +1,12 @@
-AddEventHandler("Vehicles:Client:StartUp", function()
-    exports["pulsar-core"]:RegisterClientCallback("Vehicles:Transfers:GetTarget", function(data, cb)
-        if LocalPlayer.state.loggedIn then
+AddEventHandler('Vehicles:Client:StartUp', function()
+    plsr.Callbacks:RegisterClientCallback('Vehicles:Transfers:GetTarget', function(data, cb)
+        if plsr.State.flags.loggedIn then
             if VEHICLE_INSIDE then
                 return cb(VehToNet(VEHICLE_INSIDE))
             else
-                local coords = GetEntityCoords(PlayerPedId())
-                local maxDistance = 2.0
-                local includePlayerVehicle = true
-
-                local target = lib.getClosestVehicle(coords, maxDistance, includePlayerVehicle)
-
-                if target and DoesEntityExist(target) and IsEntityAVehicle(target) then
-                    return cb(VehToNet(target))
+                local data = plsr.Targeting:GetEntityPlayerIsLookingAt()
+                if data and data.entity and DoesEntityExist(data.entity) and IsEntityAVehicle(data.entity) then
+                    return cb(VehToNet(data.entity))
                 end
             end
         end
@@ -20,7 +15,7 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 end)
 
 RegisterNetEvent('Vehicles:Tranfers:BeginConfirmation', function(data)
-    exports['pulsar-hud']:ConfirmShow(
+    plsr.Confirm:Show(
         'Confirm Vehicle Ownership Transfer',
         {
             yes = 'Vehicles:Transfers:Confirm',
@@ -49,9 +44,9 @@ RegisterNetEvent('Vehicles:Tranfers:BeginConfirmation', function(data)
 end)
 
 AddEventHandler('Vehicles:Transfers:Confirm', function(data)
-    exports["pulsar-core"]:ServerCallback('Vehicles:Tranfers:CompleteTransfer', data)
+    plsr.Callbacks:ServerCallback('Vehicles:Tranfers:CompleteTransfer', data)
 end)
 
 AddEventHandler('Vehicles:Transfers:Deny', function(data)
-    exports['pulsar-hud']:Notification("error", 'Vehicle Transfer Cancelled')
+    plsr.Notification:Error('Vehicle Transfer Cancelled')
 end)

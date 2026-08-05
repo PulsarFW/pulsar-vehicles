@@ -1,8 +1,8 @@
 function RegisterChatCommands()
 	-- Spawning and Deleting Temporary Admin Vehicles
-	exports["pulsar-chat"]:RegisterAdminCommand("sv", function(source, args, rawCommand)
+	plsr.Chat:RegisterAdminCommand("sv", function(source, args, rawCommand)
 		local vehModel = GetHashKey(args[1])
-		exports["pulsar-core"]:ClientCallback(
+		plsr.Callbacks:ClientCallback(
 			source,
 			"Vehicles:Admin:GetVehicleSpawnData",
 			vehModel,
@@ -21,12 +21,11 @@ function RegisterChatCommands()
 				end
 
 				if spawnCoords then
-					exports['pulsar-vehicles']:SpawnTemp(source, vehModel, modelType, spawnCoords, spawnHeading,
-						function(veh, VIN)
-							exports['pulsar-vehicles']:KeysAdd(source, VIN)
-						end)
+					plsr.Vehicles:SpawnTemp(source, vehModel, modelType, spawnCoords, spawnHeading, function(veh, VIN)
+						plsr.Vehicles.Keys:Add(source, VIN)
+					end)
 				else
-					exports["pulsar-chat"]:SendServerSingle(source, "Invalid Vehicle Model")
+					plsr.Chat.Send.Server:Single(source, "Invalid Vehicle Model")
 				end
 			end
 		)
@@ -40,41 +39,41 @@ function RegisterChatCommands()
 		},
 	}, 1)
 
-	exports["pulsar-chat"]:RegisterStaffCommand("dv", function(source, args, rawCommand)
-		exports["pulsar-core"]:ClientCallback(source, "Vehicles:Admin:GetVehicleToDelete", false, function(vehNet)
+	plsr.Chat:RegisterStaffCommand("dv", function(source, args, rawCommand)
+		plsr.Callbacks:ClientCallback(source, "Vehicles:Admin:GetVehicleToDelete", false, function(vehNet)
 			local targetVehicle = NetworkGetEntityFromNetworkId(vehNet)
-			exports['pulsar-vehicles']:Delete(targetVehicle, function() end)
+			plsr.Vehicles:Delete(targetVehicle, function() end)
 		end)
 	end, {
 		help = "Deletes a Vehicle You Are Inside or Looking at",
 		params = {},
 	}, 0)
 
-	exports["pulsar-chat"]:RegisterAdminCommand("vehiclescount", function(source, args, rawCommand)
+	plsr.Chat:RegisterAdminCommand("vehiclescount", function(source, args, rawCommand)
 		local count = 0
 		for k, v in pairs(ACTIVE_OWNED_VEHICLES) do
 			count = count + 1
 		end
 
-		exports["pulsar-chat"]:SendServerSingle(source, count .. " Total Owned Vehicles Spawned")
+		plsr.Chat.Send.Server:Single(source, count .. " Total Owned Vehicles Spawned")
 	end, {
 		help = "[Dev] Get Total Owned Vehicle Count",
 		params = {},
 	}, 0)
 
-	exports["pulsar-chat"]:RegisterAdminCommand("clearvehicle", function(source, args, rawCommand)
+	plsr.Chat:RegisterAdminCommand("clearvehicle", function(source, args, rawCommand)
 		local VIN = args[1]
 		if not VIN then return; end
 
-		exports['pulsar-vehicles']:OwnedDelete(VIN, function(success, nonExist)
+		plsr.Vehicles.Owned:Delete(VIN, function(success, nonExist)
 			if success then
 				if nonExist then
-					exports["pulsar-chat"]:SendServerSingle(source, "Successfully Deleted - It Didn't Exist")
+					plsr.Chat.Send.Server:Single(source, "Successfully Deleted - It Didn't Exist")
 				else
-					exports["pulsar-chat"]:SendServerSingle(source, "Successfully Deleted & Saved")
+					plsr.Chat.Send.Server:Single(source, "Successfully Deleted & Saved")
 				end
 			else
-				exports["pulsar-chat"]:SendServerSingle(source, "Failed to Delete")
+				plsr.Chat.Send.Server:Single(source, "Failed to Delete")
 			end
 		end, true)
 	end, {
@@ -87,16 +86,16 @@ function RegisterChatCommands()
 		},
 	}, 1)
 
-	exports["pulsar-chat"]:RegisterAdminCommand("addownedvehicle", function(source, args, rawCommand)
+	plsr.Chat:RegisterAdminCommand("addownedvehicle", function(source, args, rawCommand)
 		local targetSource, vehHash, make, model, class, value, vehType, vehModelType = table.unpack(args)
 		print(args)
 
 		if not targetSource or not vehHash or not make or not model then
-			exports["pulsar-chat"]:SendSystemSingle(source, "Invalid Arguments")
+			plsr.Chat.Send.System:Single(source, "Invalid Arguments")
 			return
 		end
 
-		local char = exports['pulsar-characters']:FetchBySID(tonumber(targetSource))
+		local char = plsr.Fetch:SID(tonumber(targetSource))
 		if char then
 			local stateId = char:GetData("SID")
 
@@ -104,14 +103,14 @@ function RegisterChatCommands()
 			vehHash = GetHashKey(vehHash)
 
 			if type(vehHash) == "number" and make and model and vehModelType then
-				exports['pulsar-vehicles']:OwnedAddToCharacter(stateId, vehHash, vehType, vehModelType, {
+				plsr.Vehicles.Owned:AddToCharacter(stateId, vehHash, vehType, vehModelType, {
 					make = make,
 					model = model,
 					class = class,
 					value = math.tointeger(value),
 				}, function(success, vehicle)
 					if success then
-						exports["pulsar-chat"]:SendSystemSingle(
+						plsr.Chat.Send.System:Single(
 							source,
 							string.format(
 								"Successfully Added Vehicle to State ID: %s With VIN: %s",
@@ -120,12 +119,12 @@ function RegisterChatCommands()
 							)
 						)
 					else
-						exports["pulsar-chat"]:SendSystemSingle(source, "Error Adding Vehicle")
+						plsr.Chat.Send.System:Single(source, "Error Adding Vehicle")
 					end
 				end)
 			end
 		else
-			exports["pulsar-chat"]:SendSystemSingle(source, "Player Not Logged In")
+			plsr.Chat.Send.System:Single(source, "Player Not Logged In")
 		end
 	end, {
 		help = "Add Owned Vehicle to Player",
@@ -165,11 +164,10 @@ function RegisterChatCommands()
 		},
 	}, 8)
 
-	exports["pulsar-chat"]:RegisterAdminCommand("addfleetvehicle", function(source, args, rawCommand)
-		local jobId, workplaceId, level, vehHash, make, model, class, value, vehType, modelType, qual = table.unpack(
-			args)
+	plsr.Chat:RegisterAdminCommand("addfleetvehicle", function(source, args, rawCommand)
+		local jobId, workplaceId, level, vehHash, make, model, class, value, vehType, modelType, qual = table.unpack(args)
 		if not jobId or not workplaceId or not level or not vehHash or not make or not model then
-			exports["pulsar-chat"]:SendSystemSingle(source, "Invalid Arguments")
+			plsr.Chat.Send.System:Single(source, "Invalid Arguments")
 			return
 		end
 
@@ -185,25 +183,25 @@ function RegisterChatCommands()
 			qual = false
 		end
 
-		local jobExists = exports['pulsar-jobs']:DoesExist(jobId, workplaceId)
+		local jobExists = plsr.Jobs:DoesExist(jobId, workplaceId)
 		if type(vehHash) == "number" and jobExists and level and level >= 0 and level < 10 and make and model then
-			exports['pulsar-vehicles']:OwnedAddToFleet(jobId, workplaceId, level, vehHash, vehType, modelType, {
+			plsr.Vehicles.Owned:AddToFleet(jobId, workplaceId, level, vehHash, vehType, modelType, {
 				make = make,
 				model = model,
 				class = class,
 				value = math.tointeger(value),
 			}, function(success, vehicle)
 				if success then
-					exports["pulsar-chat"]:SendSystemSingle(
+					plsr.Chat.Send.System:Single(
 						source,
 						string.format("Successfully Added Vehicle to Fleet With VIN: %s", vehicle.VIN)
 					)
 				else
-					exports["pulsar-chat"]:SendSystemSingle(source, "Error Adding Vehicle To Fleet")
+					plsr.Chat.Send.System:Single(source, "Error Adding Vehicle To Fleet")
 				end
 			end, false, qual)
 		else
-			exports["pulsar-chat"]:SendSystemSingle(source, "Error Adding Vehicle To Fleet")
+			plsr.Chat.Send.System:Single(source, "Error Adding Vehicle To Fleet")
 		end
 	end, {
 		help = "Add a Fleet Vehicle to a Job",
@@ -255,8 +253,8 @@ function RegisterChatCommands()
 		},
 	}, 11)
 
-	exports["pulsar-chat"]:RegisterAdminCommand("forceaudio", function(source, args, rawCommand)
-		exports["pulsar-core"]:ClientCallback(source, "Vehicles:Admin:GetVehicleInsideData", false, function(veh)
+	plsr.Chat:RegisterAdminCommand("forceaudio", function(source, args, rawCommand)
+		plsr.Callbacks:ClientCallback(source, "Vehicles:Admin:GetVehicleInsideData", false, function(veh)
 			local audio = args[1]:upper()
 			if audio == "remove" or audio == "false" then
 				audio = false
@@ -265,30 +263,30 @@ function RegisterChatCommands()
 			if veh and veh.vehicle then
 				local v = NetworkGetEntityFromNetworkId(veh.vehicle)
 				if v and DoesEntityExist(v) then
-					local ent = Entity(v)
-					if ent and ent.state and ent.state.VIN then
-						local vehicle = exports['pulsar-vehicles']:OwnedGetActive(ent.state.VIN)
+					local ent = plsr.State.Entity(v)
+					if ent and ent.VIN then
+						local vehicle = plsr.Vehicles.Owned:GetActive(ent.VIN)
 						if vehicle then
 							vehicle:SetData("ForcedAudio", audio)
-							ent.state.ForcedAudio = audio
+							ent.ForcedAudio = audio
 
 							TriggerClientEvent("Vehicle:Client:ForceAudio", -1, veh.vehicle, audio)
 
-							exports['pulsar-vehicles']:OwnedForceSave(ent.state.VIN)
+							plsr.Vehicles.Owned:ForceSave(ent.VIN)
 
-							exports['pulsar-hud']:Notification(source, "success", "Done")
+							plsr.Execute:Client(source, "Notification", "Success", "Done")
 						else
-							ent.state.ForcedAudio = audio
+							ent.ForcedAudio = audio
 							TriggerClientEvent("Vehicle:Client:ForceAudio", -1, veh.vehicle, audio)
 
-							exports['pulsar-hud']:Notification(source, "success", "Done")
+							plsr.Execute:Client(source, "Notification", "Success", "Done")
 						end
 						return
 					end
 				end
 			end
 
-			exports['pulsar-hud']:Notification(source, "error", "Unable to Force Audio")
+			plsr.Execute:Client(source, "Notification", "Error", "Error")
 		end)
 	end, {
 		help = "Force Overrides a Vehicle Engine Audio & Saves It",
@@ -300,7 +298,7 @@ function RegisterChatCommands()
 		},
 	}, 1)
 
-	exports["pulsar-chat"]:RegisterCommand("seat", function(source, args, rawCommand)
+	plsr.Chat:RegisterCommand("seat", function(source, args, rawCommand)
 		local seatNum = tonumber(args[1])
 		if seatNum and seatNum > 0 then
 			TriggerClientEvent("Vehicles:Client:Actions:SwitchSeat", source, seatNum - 2)
@@ -315,7 +313,7 @@ function RegisterChatCommands()
 		},
 	}, 1)
 
-	exports["pulsar-chat"]:RegisterCommand("door", function(source, args, rawCommand)
+	plsr.Chat:RegisterCommand("door", function(source, args, rawCommand)
 		local doorNum = args[1]
 		local action = string.lower(doorNum)
 		if action == "open" or action == "shut" or action == "close" then
@@ -337,7 +335,7 @@ function RegisterChatCommands()
 		},
 	}, 1)
 
-	exports["pulsar-chat"]:RegisterCommand("win", function(source, args, rawCommand)
+	plsr.Chat:RegisterCommand("win", function(source, args, rawCommand)
 		local winNum = args[1]
 		local action = string.lower(winNum)
 		if action == "open" or action == "shut" or action == "close" then
@@ -359,38 +357,43 @@ function RegisterChatCommands()
 		},
 	}, 1)
 
-	-- exports["pulsar-chat"]:RegisterCommand('slimjim', function(source, args, rawCommand)
+	-- plsr.Chat:RegisterCommand('slimjim', function(source, args, rawCommand)
 	--     TriggerClientEvent('Vehicles:Client:AttemptSlimJim', source)
 	-- end, {
 	--     help = 'Attempt to Slimjim a Vehicle',
 	--     params = {}
 	-- }, -1)
 
-	exports["pulsar-chat"]:RegisterCommand("givekeys", function(source, args, rawCommand)
-		exports["pulsar-core"]:ClientCallback(
+	plsr.Chat:RegisterCommand("givekeys", function(source, args, rawCommand)
+		plsr.Callbacks:ClientCallback(
 			source,
 			"Vehicles:Keys:GetVehicleToShare",
 			{},
 			function(data, sids)
 				local veh = NetworkGetEntityFromNetworkId(data)
 				if veh and DoesEntityExist(veh) then
-					local vehEnt = Entity(veh)
+					local vehEnt = plsr.State.Entity(veh)
 					if
 						vehEnt
-						and vehEnt.state
-						and vehEnt.state.VIN
-						and exports['pulsar-vehicles']:KeysHas(source, vehEnt.state.VIN, false)
+						and vehEnt.VIN
+						and plsr.Vehicles.Keys:Has(source, vehEnt.VIN, false)
 					then
 						for k, v in ipairs(sids) do
-							exports['pulsar-vehicles']:KeysAdd(v, vehEnt.state.VIN)
-							exports['pulsar-hud']:Notification("info", v,
+							plsr.Vehicles.Keys:Add(v, vehEnt.VIN)
+							plsr.Execute:Client(
+								v,
+								"Notification",
+								"Info",
 								"You Received Keys to a Vehicle",
 								3000,
 								"key"
 							)
 						end
 
-						exports['pulsar-hud']:Notification(source, "success",
+						plsr.Execute:Client(
+							source,
+							"Notification",
+							"Success",
 							"You Gave Everyone Nearby Keys",
 							3000,
 							"key"
@@ -404,38 +407,35 @@ function RegisterChatCommands()
 		params = {},
 	}, 0)
 
-	exports["pulsar-chat"]:RegisterCommand("transfer", function(source, args, rawCommand)
+	plsr.Chat:RegisterCommand("transfer", function(source, args, rawCommand)
 		local target = tonumber(args[1])
 		if target and target > 0 then
-			local char = exports['pulsar-characters']:FetchCharacterSource(source)
-			local targetChar = exports['pulsar-characters']:FetchBySID(target)
+			local char = plsr.Fetch:CharacterSource(source)
+			local targetChar = plsr.Fetch:SID(target)
 
 			if char and targetChar and targetChar:GetData("Source") ~= char:GetData("Source") then
-				exports["pulsar-core"]:ClientCallback(source, "Vehicles:Transfers:GetTarget", {}, function(data)
+				plsr.Callbacks:ClientCallback(source, "Vehicles:Transfers:GetTarget", {}, function(data)
 					local veh = NetworkGetEntityFromNetworkId(data)
 					if veh and DoesEntityExist(veh) then
-						local vehEnt = Entity(veh)
-						if vehEnt?.state?.VIN and vehEnt?.state?.Owned and vehEnt?.state?.Owner?.Type == 0 and vehEnt?.state?.Owner?.Id == char:GetData("SID") then
-							local remainingLoan = exports['pulsar-finance']:LoansHasRemainingPayments("vehicle",
-								vehEnt.state.VIN)
+						local vehEnt = plsr.State.Entity(veh)
+						if vehEnt?.VIN and vehEnt?.Owned and vehEnt?.Owner?.Type == 0 and vehEnt?.Owner?.Id == char:GetData("SID") then
+							local remainingLoan = plsr.Loans:HasRemainingPayments("vehicle", vehEnt.VIN)
 							if remainingLoan then
-								exports['pulsar-hud']:Notification(source, "error",
-									"Cannot transfer vehicle with an active loan.")
+								plsr.Execute:Client(source, "Notification", "Error", "Cannot transfer vehicle with an active loan.")
 								return
 							end
 
-							if vehEnt?.state?.Donator then
-								exports['pulsar-hud']:Notification(source, "error",
-									"Cannot transfer this vehicle.")
+							if vehEnt?.Donator then
+								plsr.Execute:Client(source, "Notification", "Error", "Cannot transfer this vehicle.")
 								return
 							end
 
 							TriggerClientEvent('Vehicles:Tranfers:BeginConfirmation', source, {
 								SID = target,
-								Make = vehEnt.state.Make,
-								Model = vehEnt.state.Model,
-								VIN = vehEnt.state.VIN,
-								Plate = vehEnt.state.Plate,
+								Make = vehEnt.Make,
+								Model = vehEnt.Model,
+								VIN = vehEnt.VIN,
+								Plate = vehEnt.Plate,
 							})
 						end
 					end
@@ -443,7 +443,7 @@ function RegisterChatCommands()
 				return
 			end
 		end
-		exports['pulsar-hud']:Notification(src, "error", 'Invalid State ID')
+		plsr.Execute:Client(source, 'Notification', 'Error', 'Invalid State ID')
 	end, {
 		help = "Transfer Ownership of the Vehicle You Are Looking at or In to Another Person",
 		params = {
