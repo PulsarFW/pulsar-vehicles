@@ -8,9 +8,7 @@ function GetPedSeatInVehicle(veh, ped)
     return false
 end
 
--- Yes this is aids
-
-function DoVehicleUnlockShit(veh)
+function DoVehicleUnlockFlash(veh)
     StartVehicleHorn(veh, 80, "HELDDOWN", false)
     SetVehicleLights(veh, 2)
     Wait(200)
@@ -21,7 +19,7 @@ function DoVehicleUnlockShit(veh)
     SetVehicleLights(veh, 0)
 end
 
-function DoVehicleLockShit(veh)
+function DoVehicleLockFlash(veh)
     StartVehicleHorn(veh, 80, "HELDDOWN", false)
     Wait(160)
     StartVehicleHorn(veh, 350, "HELDDOWN", false)
@@ -34,7 +32,7 @@ function DoVehicleLockShit(veh)
     SetVehicleLights(veh, 0)
 end
 
--- Because the normal one doesn't fucking work
+-- Because the normal one doesn't work
 function GetClosestVehicleWithinRadius(coords, radius)
     if not radius then
         radius = 5.0

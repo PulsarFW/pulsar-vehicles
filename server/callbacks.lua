@@ -141,15 +141,15 @@ function RegisterCallbacks()
                         end
                     end
                     if success and #results > 0 then
-                        local dumbShit = {}
+                        local bySID = {}
                         for k, v in ipairs(results) do
-                            dumbShit[v.SID] = v
+                            bySID[v.SID] = v
                         end
 
                         cb(vehicles, {
                             current = plsr.Vehicles.Owned.Properties:GetCount(storageId),
                             max = maxParking or 0
-                        }, characterId, dumbShit)
+                        }, characterId, bySID)
                     else
                         cb(false)
                     end
@@ -554,8 +554,8 @@ function RegisterCallbacks()
                     vehicleData:SetData('DirtLevel', 0.0)
                     plsr.Vehicles.Owned:ForceSave(vehicleData:GetData('VIN'))
 
-                elseif vehState.PleaseDoNotFuckingDelete then
-                    _savedVehiclePropertiesClusterfuck[vehState.VIN] = data.new
+                elseif vehState.PreventDelete then
+                    _savedVehicleProperties[vehState.VIN] = data.new
                 end
     
                 SetVehicleDirtLevel(veh, 0.0)

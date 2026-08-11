@@ -268,12 +268,12 @@ function RunVehiclePartsDamageEffects(veh)
 
                 if wait then
                     plsr.Logger:Trace('Vehicles', 'Running Damage Effects - Clutch')
-                    local lolGetFucked = true
+                    local rpmLocked = true
                     Citizen.SetTimeout(wait, function()
-                        lolGetFucked = false
+                        rpmLocked = false
                     end)
                     CreateThread(function()
-                        while lolGetFucked do
+                        while rpmLocked do
                             Wait(5)
                             SetVehicleCurrentRpm(veh, 0.2)
                         end

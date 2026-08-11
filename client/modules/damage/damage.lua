@@ -1,6 +1,6 @@
 DAMAGE_VEHICLE = false
 
-SENT_FUCKED_DAMAGE = {}
+SENT_DEGEN_DAMAGE = {}
 
 LAST_DAMAGE_ENGINE = 1000.0
 LAST_DAMAGE_BODY = 1000.0
@@ -13,7 +13,7 @@ AddEventHandler("Vehicles:Client:ForceUpdateVehicleDamageState", function(vehicl
 		LAST_DAMAGE_ENGINE = newDamage.Engine
 		LAST_DAMAGE_BODY = newDamage.Body
 
-		SENT_FUCKED_DAMAGE[vehicle] = false
+		SENT_DEGEN_DAMAGE[vehicle] = false
 	end
 end)
 
@@ -126,7 +126,7 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 	AddTaskBeforeVehicleThread("regular_damage", function(veh, class)
 		DAMAGE_VEHICLE = veh
 
-		fuckingExplode = false
+		shouldExplode = false
 
 		INSIDE_DAMAGE_MODIFIER = 2.0
 		if _damageMultiplierOverrides[class] then
@@ -175,30 +175,30 @@ AddEventHandler("Vehicles:Client:StartUp", function()
 			end
 
 			if engineHealth <= -100.0 then
-				if INSIDE_HAS_DEGEN and not SENT_FUCKED_DAMAGE[veh] then
-					SENT_FUCKED_DAMAGE[veh] = true
+				if INSIDE_HAS_DEGEN and not SENT_DEGEN_DAMAGE[veh] then
+					SENT_DEGEN_DAMAGE[veh] = true
 					RunVehiclePartsDamage(veh, false, false, true)
 				end
 
 				local allowExplode = math.random(5, engineRunning and 40 or 60)
-				if fuckingExplode or (allowExplode <= 7) then
-					fuckingExplode = true
+				if shouldExplode or (allowExplode <= 7) then
+					shouldExplode = true
 					SetDisableVehiclePetrolTankDamage(veh, false)
 					SetDisableVehiclePetrolTankFires(veh, false)
 					SetVehiclePetrolTankHealth(veh, 200.0)
 				else
-					fuckingExplode = false
+					shouldExplode = false
 					SetDisableVehiclePetrolTankDamage(veh, true)
 					SetDisableVehiclePetrolTankFires(veh, true)
 					SetVehiclePetrolTankHealth(veh, 4000.0)
 				end
 			else
-				if fuckingExplode then
-					fuckingExplode = false
+				if shouldExplode then
+					shouldExplode = false
 				end
 
-				if SENT_FUCKED_DAMAGE[veh] then
-					SENT_FUCKED_DAMAGE[veh] = false
+				if SENT_DEGEN_DAMAGE[veh] then
+					SENT_DEGEN_DAMAGE[veh] = false
 				end
 			end
 		end

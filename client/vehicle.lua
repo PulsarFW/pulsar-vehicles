@@ -201,8 +201,8 @@ VEHICLE = {
 					setToFail = true
 				end
 	
-				local getFucked = math.random(0, 60)
-				if getFucked <= 20 and getFucked >= 5 then
+				local failRoll = math.random(0, 60)
+				if failRoll <= 20 and failRoll >= 5 then
 					setToFail = true
 				end
 	

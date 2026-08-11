@@ -4,7 +4,7 @@ local blipsForVehType = {
     [2] = 359,
 }
 
-local cachedStorageShit = {}
+local cachedStorageContext = {}
 local _tempVehicles = {}
 local tempVehAppearanceData = {}
 local tempParkingSpace = nil
@@ -167,7 +167,7 @@ function OpenVehicleStorage()
                     end
 
                     if #storedVehicles > 0 then
-                        cachedStorageShit = {
+                        cachedStorageContext = {
                             storageType = 1,
                             storageId = vehicleStorageZoneId,
                             storedVehicleData = storedVehicles,
@@ -197,7 +197,7 @@ function OpenVehicleStorage()
                     end
 
                     if #storedVehicles > 0 then
-                        cachedStorageShit = {
+                        cachedStorageContext = {
                             storageType = 2,
                             storageId = propertyGarage.propertyId,
                             storedVehicleData = storedVehicles,
@@ -492,17 +492,17 @@ end
 AddEventHandler("Vehicles:Client:Storage:GoBack", function()
     CleanupTempVehicle()
 
-    if cachedStorageShit then
+    if cachedStorageContext then
         OpenVehicleStorageMenu(
-            cachedStorageShit.storageType, 
-            cachedStorageShit.storageId, 
-            cachedStorageShit.storedVehicleData, 
-            cachedStorageShit.parkingSpace, 
-            cachedStorageShit.characterDuty, 
-            cachedStorageShit.maxCount, 
-            cachedStorageShit.currentCount, 
-            cachedStorageShit.characterId, 
-            cachedStorageShit.characters
+            cachedStorageContext.storageType, 
+            cachedStorageContext.storageId, 
+            cachedStorageContext.storedVehicleData, 
+            cachedStorageContext.parkingSpace, 
+            cachedStorageContext.characterDuty, 
+            cachedStorageContext.maxCount, 
+            cachedStorageContext.currentCount, 
+            cachedStorageContext.characterId, 
+            cachedStorageContext.characters
         )
     end
 end)
@@ -574,14 +574,14 @@ AddEventHandler("Vehicles:Client:Storage:Select", function(data)
     
             if vehicle.LastDriver and #vehicle.LastDriver > 0 then
                 local fhId = vehicle.VIN .. '-fleet-history'
-                local shitCunt = {}
+                local driverHistoryItems = {}
     
                 local timeNow = GetCloudTimeAsInt() or 0
                 for i = #vehicle.LastDriver, 1, -1 do
                     local driver = vehicle.LastDriver[i]
                     local timeString = GetFormattedTimeFromSeconds(timeNow - driver.time)
     
-                    table.insert(shitCunt, {
+                    table.insert(driverHistoryItems, {
                         label = string.format('Driver SID: %s', driver.char),
                         description = string.format('Returned Vehicle %s Ago', timeString),
                         event = false,
@@ -590,7 +590,7 @@ AddEventHandler("Vehicles:Client:Storage:Select", function(data)
     
                 subMenu[fhId] = {
                     label = (vehicle.RegisteredPlate or 'Vehicle') .. ' Fleet History',
-                    items = shitCunt
+                    items = driverHistoryItems
                 }
     
                 table.insert(vehItems, {

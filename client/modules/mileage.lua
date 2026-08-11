@@ -13,7 +13,7 @@ AddEventHandler('Vehicles:Client:StartUp', function()
 
             local vehCoords = GetEntityCoords(DAMAGE_VEHICLE)
             local distCovered = #(vehCoords - LAST_VEH_POS)
-            if distCovered >= 0.5 then -- Otherwise the vehicle isn't actually moving cunt
+            if distCovered >= 0.5 then -- Otherwise the vehicle isn't actually moving
                 local distCoveredMiles = distCovered / 1609
                 local newMileage = plsr.Utils:Round(currentMileage + distCoveredMiles, 2)
                 vehEnt.Mileage = newMileage

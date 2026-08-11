@@ -38,8 +38,34 @@ local _trailerModels = {
 --     -- end
 -- end
 
-function CreateFuckingVehicle(type, model, coords, heading, useShitWay)
-    if not useShitWay then
+local _validVehicleTypes = {
+    automobile = true,
+    bike = true,
+    boat = true,
+    heli = true,
+    plane = true,
+    submarine = true,
+    trailer = true,
+    train = true,
+    quadbike = true,
+    blimp = true,
+    amphibious_automobile = true,
+    amphibious_quadbike = true,
+}
+
+local _vehicleTypeAliases = {
+    motorcycle = 'bike',
+    motorbike = 'bike',
+    helicopter = 'heli',
+    plane_and_heli = 'plane',
+}
+
+function CreateVehicleFromType(type, model, coords, heading, useLegacyMethod)
+    if not _validVehicleTypes[type] then
+        type = _vehicleTypeAliases[type] or 'automobile'
+    end
+
+    if not useLegacyMethod then
         if not heading then heading = 0.0 end
         if model ~= nil then
             local veh = CreateVehicleServerSetter(model, type, coords.x, coords.y, coords.z, heading)

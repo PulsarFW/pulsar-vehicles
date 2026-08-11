@@ -116,11 +116,11 @@ _vehicleKeysExtension = {
 				if newState then
 					plsr.Notification:Error("Vehicle Locked")
 					plsr.Sounds.Do.Play:One("central-locking.ogg", 0.2)
-					DoVehicleLockShit(veh)
+					DoVehicleLockFlash(veh)
 				else
 					plsr.Notification:Success("Vehicle Unlocked")
 					plsr.Sounds.Do.Play:One("central-locking.ogg", 0.2)
-					DoVehicleUnlockShit(veh)
+					DoVehicleUnlockFlash(veh)
 				end
 			end
 		end)

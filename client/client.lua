@@ -77,24 +77,24 @@ CreateThread(function()
 							return false
 						end,
 						action = function()
-							local fuckingSeats = {}
+							local seatOptions = {}
 							local seatAmount = GetVehicleModelNumberOfSeats(GetEntityModel(VEHICLE_INSIDE))
 							for i = 1, seatAmount do
-								local actualFuckingSeatNumber = i - 2
-								if GetPedInVehicleSeat(VEHICLE_INSIDE, actualFuckingSeatNumber) == 0 then
-									table.insert(fuckingSeats, {
+								local actualSeatNumber = i - 2
+								if GetPedInVehicleSeat(VEHICLE_INSIDE, actualSeatNumber) == 0 then
+									table.insert(seatOptions, {
 										icon = "chair",
-										label = actualFuckingSeatNumber == -1 and "Driver's Seat" or "Seat #" .. i,
+										label = actualSeatNumber == -1 and "Driver's Seat" or "Seat #" .. i,
 										action = function()
-											TriggerEvent("Vehicles:Client:Actions:SwitchSeat", actualFuckingSeatNumber)
+											TriggerEvent("Vehicles:Client:Actions:SwitchSeat", actualSeatNumber)
 											plsr.Interaction:Hide()
 										end,
 									})
 								end
 							end
 
-							if #fuckingSeats > 0 then
-								plsr.Interaction:ShowMenu(fuckingSeats)
+							if #seatOptions > 0 then
+								plsr.Interaction:ShowMenu(seatOptions)
 							else
 								plsr.Notification:Error("No Seats Free")
 							end
@@ -112,10 +112,10 @@ CreateThread(function()
 							return false
 						end,
 						action = function()
-							local fuckingDoors = {}
+							local doorOptions = {}
 							for doorId, doorName in pairs(vehicleDoorNames) do
 								if GetIsDoorValid(VEHICLE_INSIDE, doorId) then
-									table.insert(fuckingDoors, {
+									table.insert(doorOptions, {
 										icon = "car-side",
 										label = doorName,
 										action = function()
@@ -125,7 +125,7 @@ CreateThread(function()
 								end
 							end
 
-							plsr.Interaction:ShowMenu(fuckingDoors)
+							plsr.Interaction:ShowMenu(doorOptions)
 						end,
 					},
 					{
@@ -174,8 +174,8 @@ CreateThread(function()
 							return false
 						end,
 						action = function()
-							local fuckingDoors = {}
-							table.insert(fuckingDoors, {
+							local windowOptions = {}
+							table.insert(windowOptions, {
 								icon = "person-through-window",
 								label = "Driver Window",
 								action = function()
@@ -183,7 +183,7 @@ CreateThread(function()
 								end,
 							})
 
-							table.insert(fuckingDoors, {
+							table.insert(windowOptions, {
 								icon = "person-through-window",
 								label = "Passenger Window",
 								action = function()
@@ -191,7 +191,7 @@ CreateThread(function()
 								end,
 							})
 
-							table.insert(fuckingDoors, {
+							table.insert(windowOptions, {
 								icon = "person-through-window",
 								label = "Close All",
 								action = function()
@@ -199,7 +199,7 @@ CreateThread(function()
 								end,
 							})
 
-							table.insert(fuckingDoors, {
+							table.insert(windowOptions, {
 								icon = "person-through-window",
 								label = "Open All",
 								action = function()
@@ -207,7 +207,7 @@ CreateThread(function()
 								end,
 							})
 
-							plsr.Interaction:ShowMenu(fuckingDoors)
+							plsr.Interaction:ShowMenu(windowOptions)
 						end,
 					},
 					{

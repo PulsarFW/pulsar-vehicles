@@ -29,7 +29,7 @@
 
 ## Overview
 
-Registers `plsr.Vehicles`. Owns vehicle spawning, key ownership, VIN-based identification, personal plates, impound and long-term storage, and the siren/pursuit-mode data other resources (police vehicles, emergency boats) read from. `client/antifuck.lua` covers anti-desync/anti-dupe handling for spawned vehicles.
+Registers `plsr.Vehicles`. Owns vehicle spawning, key ownership, VIN-based identification, personal plates, impound and long-term storage, and the siren/pursuit-mode data other resources (police vehicles, emergency boats) read from. `client/anti_desync.lua` covers anti-desync/anti-dupe handling for spawned vehicles.
 
 > [!WARNING]
 > Widely depended on — dealerships, mechanic, taxi, and every job with a vehicle all build on top of this. Fires `Vehicles:Client:EnterVehicle`/`ExitVehicle`, which other resources hook directly.
